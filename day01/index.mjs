@@ -1,9 +1,12 @@
 import fs from "node:fs";
 
-// Parse input into 2 separate lists of numbers
-function parseInput() {
+function readInput() {
   const input = process.env.INPUT ?? "sample.txt";
-  const rawData = fs.readFileSync(new URL(input, import.meta.url), "utf-8");
+  return fs.readFileSync(new URL(input, import.meta.url), "utf-8");
+}
+
+function parseInput() {
+  const rawData = readInput();
   const { leftList, rightList } = rawData.split("\n").reduce(
     ({ leftList, rightList }, line) => {
       const match = line.match(/(\d+)\s+(\d+)/);
