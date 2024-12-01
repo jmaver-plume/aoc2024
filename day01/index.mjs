@@ -35,11 +35,11 @@ function solvePart2() {
     const count = frequencyMap.get(number) ?? 0;
     frequencyMap.set(number, count + 1);
   });
-  let similarityScore = 0;
-  leftList.forEach((number) => {
-    similarityScore += number * (frequencyMap.get(number) ?? 0);
-  });
-  return similarityScore;
+  return leftList.reduce(
+    (similarity, number) =>
+      similarity + number * (frequencyMap.get(number) ?? 0),
+    0,
+  );
 }
 
 // Run code
