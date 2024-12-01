@@ -1,14 +1,16 @@
 import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
 
 // Parse input
 const rawData = await fs.readFile(new URL('input.txt', import.meta.url), 'utf-8');
-const rawLines = rawData.split('\n')
-const lines = rawLines.map(line => {
-    const [_, first, second] = line.match(/(\d+)\s+(\d+)/)
-    return [parseInt(first), parseInt(second)]
-})
-const leftList = lines.map(([first, second]) => first)
-const rightList = lines.map(([first, second]) => second)
+const {leftList, rightList} = rawData.split('\n').reduce(({leftList, rightList}, line) => {
+    const match = line.match(/(\d+)\s+(\d+)/)
+    return {
+        leftList: leftList.concat(parseInt(match[1])),
+        rightList: rightList.concat(parseInt(match[2])),
+    }
+}, { leftList: [], rightList: []})
+assert.equal(leftList.length, rightList.length)
 
 
 // Part 1 solution
