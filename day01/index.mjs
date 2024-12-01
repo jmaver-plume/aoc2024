@@ -23,9 +23,7 @@ leftList.sort((a, b) => a - b);
 rightList.sort((a, b) => a - b);
 let distance = 0;
 for (let i = 0; i < leftList.length; i++) {
-  const left = leftList[i];
-  const right = rightList[i];
-  distance += Math.abs(left - right);
+  distance += Math.abs(leftList[i] - rightList[i]);
 }
 console.log(`Part 1: ${distance}`);
 
