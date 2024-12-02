@@ -5,11 +5,20 @@ function readInput() {
   return fs.readFileSync(new URL(input, import.meta.url), "utf-8");
 }
 
-function parseInput() {}
+function parseInput() {
+  const data = readInput();
+  return data;
+}
 
-function solvePart1() {}
+function solvePart1() {
+  const input = parseInput();
+  return;
+}
 
-function solvePart2() {}
+function solvePart2() {
+  const input = parseInput();
+  return;
+}
 
 // Run code
 const part1Result = solvePart1();
