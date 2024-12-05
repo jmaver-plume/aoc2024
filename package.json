@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "sample": "INPUT=sample.txt node src/day04/index.mjs",
-    "solution": "INPUT=solution.txt node src/day04/index.mjs"
+    "sample": "INPUT=sample.txt node src/day05/index.mjs",
+    "solution": "INPUT=solution.txt node src/day05/index.mjs"
   },
   "keywords": [],
   "author": "",
