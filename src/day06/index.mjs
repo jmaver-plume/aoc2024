@@ -10,101 +10,18 @@ function parseInput() {
   return data.split("\n").map((line) => line.split(""));
 }
 
-function getStart(grid) {
+// Generic grid methods
+// Returns a grid iterator for use in for...of
+function* makeGridIterator(grid) {
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[0].length; x++) {
-      if (grid[y][x] === "^") {
-        return { x, y, direction: "^", visited: new Set() };
-      }
+      yield { x, y, value: grid[y][x], grid };
     }
   }
 }
 
-function isOut(guard, grid) {
-  return (
-    guard.x < 0 ||
-    guard.x > grid[0].length - 1 ||
-    guard.y < 0 ||
-    guard.y > grid.length - 1
-  );
-}
-
-function rotate(guard) {
-  if (guard.direction === "^") {
-    return { ...guard, direction: ">" };
-  } else if (guard.direction === ">") {
-    return { ...guard, direction: "v" };
-  } else if (guard.direction === "v") {
-    return { ...guard, direction: "<" };
-  } else {
-    return { ...guard, direction: "^" };
-  }
-}
-
-function move(guard, grid) {
-  let nextPosition;
-  if (guard.direction === "^") {
-    nextPosition = { x: guard.x, y: guard.y - 1 };
-  } else if (guard.direction === "v") {
-    nextPosition = { x: guard.x, y: guard.y + 1 };
-  } else if (guard.direction === "<") {
-    nextPosition = { x: guard.x - 1, y: guard.y };
-  } else {
-    nextPosition = { x: guard.x + 1, y: guard.y };
-  }
-
-  if (isOut(nextPosition, grid)) {
-    grid[guard.y][guard.x] = "X";
-    return nextPosition;
-  }
-
-  if (grid[nextPosition.y][nextPosition.x] !== "#") {
-    const state = `${guard.x}::${guard.y}::${guard.direction}`;
-    if (guard.visited.has(state)) {
-      return null;
-    } else {
-      grid[guard.y][guard.x] = "X";
-      return {
-        ...nextPosition,
-        direction: guard.direction,
-        visited: guard.visited.add(
-          `${guard.x}::${guard.y}::${guard.direction}`,
-        ),
-      };
-    }
-  } else {
-    return rotate(guard);
-  }
-}
-
-function count(grid) {
-  let count = 0;
-  grid.forEach((row) => {
-    row.forEach((cell) => {
-      if (cell === "X") {
-        count++;
-      }
-    });
-  });
-  return count;
-}
-
-function print(grid) {
-  grid.forEach((row) => {
-    console.log(row.join(""));
-  });
-}
-
-function solvePart1() {
-  const grid = parseInput();
-  let guard = getStart(grid);
-  while (!isOut(guard, grid)) {
-    guard = move(guard, grid);
-  }
-  return count(grid) + 1;
-}
-
-function getClone(grid) {
+// Deep clone a 2D grid
+function clone(grid) {
   const clone = [];
   for (let y = 0; y < grid.length; y++) {
     let row = [];
@@ -116,37 +33,129 @@ function getClone(grid) {
   return clone;
 }
 
+// Returns true if position is on the edge of the grid
+function isOnEdge(position, grid) {
+  return (
+    position.x === 0 ||
+    position.x === grid[0].length - 1 ||
+    position.y === 0 ||
+    position.y === grid.length - 1
+  );
+}
+
+// Prints a 2D grid
+function print(grid) {
+  grid.forEach((row) => {
+    console.log(row.join(""));
+  });
+}
+
+// Problem specific methods
+function getStart(grid) {
+  const gridIterator = makeGridIterator(grid);
+  for (const { x, y, value } of gridIterator) {
+    if (value === "^") {
+      return { x, y, direction: "^" };
+    }
+  }
+}
+
+// Either moves guard to the next position or rotates the guards direction
+function move(guard, grid) {
+  // Calculate next possible position of the guard
+  let nextPosition;
+  switch (guard.direction) {
+    case "^":
+      nextPosition = { x: guard.x, y: guard.y - 1 };
+      break;
+    case ">":
+      nextPosition = { x: guard.x + 1, y: guard.y };
+      break;
+    case "v":
+      nextPosition = { x: guard.x, y: guard.y + 1 };
+      break;
+    case "<":
+      nextPosition = { x: guard.x - 1, y: guard.y };
+      break;
+    default:
+      throw new Error(`Cannot rotate direction "${guard.direction}"`);
+  }
+
+  if (grid[nextPosition.y][nextPosition.x] !== "#") {
+    // Go forward since there is no obstacle
+    guard.x = nextPosition.x;
+    guard.y = nextPosition.y;
+  } else {
+    // If next position is an obstacle we need to rotate the guards direction
+    switch (guard.direction) {
+      case "^":
+        guard.direction = ">";
+        break;
+      case ">":
+        guard.direction = "v";
+        break;
+      case "v":
+        guard.direction = "<";
+        break;
+      case "<":
+        guard.direction = "^";
+        break;
+      default:
+        throw new Error(`Cannot rotate direction "${guard.direction}"`);
+    }
+  }
+}
+
+function solvePart1() {
+  const grid = parseInput();
+  const guard = getStart(grid);
+  // Mark initial position as visited
+  grid[guard.y][guard.x] = "X";
+  do {
+    move(guard, grid);
+    grid[guard.y][guard.x] = "X";
+  } while (!isOnEdge(guard, grid));
+  return grid.flat().reduce((sum, value) => (value === "X" ? sum + 1 : sum), 0);
+}
+
 function solvePart2() {
   const grid = parseInput();
 
-  const firstClone = getClone(grid);
-  let firstGuard = getStart(firstClone);
-  while (!isOut(firstGuard, firstClone)) {
-    firstGuard = move(firstGuard, firstClone);
-  }
+  // First run without an additional obstacle to get a list of locations guard visited
+  // This is a performance optimization to add obstacle to only visited locations
+  const firstClone = clone(grid);
+  const firstGuard = getStart(firstClone);
+  firstClone[firstGuard.y][firstGuard.x] = "X";
+  do {
+    move(firstGuard, firstClone);
+    firstClone[firstGuard.y][firstGuard.x] = "X";
+  } while (!isOnEdge(firstGuard, firstClone));
 
   let count = 0;
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[0].length; x++) {
-      if (grid[y][x] !== "." || firstClone[y][x] === ".") {
-        continue;
-      }
+  const gridIterator = makeGridIterator(grid);
+  for (const { x, y, value } of gridIterator) {
+    // Add obstacle to locations guard visited
+    if (firstClone[y][x] === "X") {
+      const cloned = clone(grid);
+      const guard = getStart(cloned);
 
-      const clone = getClone(grid);
-      clone[y][x] = "#";
-      let guard = getStart(clone);
-      let isLoop = false;
-      while (!isOut(guard, clone)) {
-        guard = move(guard, clone);
-        if (guard === null) {
-          isLoop = true;
+      // Add obstacle
+      cloned[y][x] = "#";
+
+      const visited = new Set();
+      do {
+        // Position and direction are used as in key for loop finding
+        const key = `${guard.x}::${guard.y}::${guard.direction}`;
+        if (visited.has(key)) {
+          // Location with direction already visited indicating a loop
+          count += 1;
           break;
+        } else {
+          // Location with direction not yet visited
+          visited.add(key);
         }
-      }
-
-      if (isLoop) {
-        count += 1;
-      }
+        move(guard, cloned);
+      } while (!isOnEdge(guard, cloned));
     }
   }
   return count;
