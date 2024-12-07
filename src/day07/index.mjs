@@ -7,17 +7,48 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  return data.split("\n").map((line) => {
+    const [sum, rest] = line.split(": ");
+    const operands = rest.split(" ").map(Number);
+    return { sum: parseInt(sum), operands };
+  });
 }
 
 function solvePart1() {
-  const input = parseInput();
-  return;
+  const equations = parseInput();
+  return equations
+    .filter((equation) => {
+      const { sum, operands } = equation;
+      let results = [operands[0]];
+      operands.slice(1).forEach((operand) => {
+        results = results
+          .flatMap((result) => [result * operand, result + operand])
+          .filter((result) => result <= sum);
+      });
+      return results.some((result) => result === sum);
+    })
+    .reduce((sum, equation) => sum + equation.sum, 0);
 }
 
 function solvePart2() {
-  const input = parseInput();
-  return;
+  const equations = parseInput();
+  return equations
+    .filter((equation) => {
+      const { sum, operands } = equation;
+      let results = [operands[0]];
+      operands.slice(1).forEach((operand) => {
+        results = results
+          .flatMap((result) => [
+            result * operand,
+            result + operand,
+            Number(`${result}${operand}`),
+          ])
+          // Performance optimization needed for part 2
+          .filter((result) => result <= sum);
+      });
+      return results.some((result) => result === sum);
+    })
+    .reduce((sum, equation) => sum + equation.sum, 0);
 }
 
 // Run code
