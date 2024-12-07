@@ -124,38 +124,39 @@ function solvePart2() {
   // First run without an additional obstacle to get a list of locations guard visited
   // This is a performance optimization to add obstacle to only visited locations
   const firstClone = clone(grid);
-  const firstGuard = getStart(firstClone);
-  firstClone[firstGuard.y][firstGuard.x] = "X";
+  const guard = getStart(firstClone);
+  firstClone[guard.y][guard.x] = "X";
   do {
-    move(firstGuard, firstClone);
-    firstClone[firstGuard.y][firstGuard.x] = "X";
-  } while (!isOnEdge(firstGuard, firstClone));
+    move(guard, firstClone);
+    firstClone[guard.y][guard.x] = "X";
+  } while (!isOnEdge(guard, firstClone));
 
   let count = 0;
   const gridIterator = makeGridIterator(grid);
   for (const { x, y, value } of gridIterator) {
     // Add obstacle to locations guard visited
-    if (firstClone[y][x] === "X") {
-      const cloned = clone(grid);
-      const guard = getStart(cloned);
+    if (firstClone[y][x] === "X" && value === ".") {
+      const guard = getStart(grid);
 
       // Add obstacle
-      cloned[y][x] = "#";
+      grid[y][x] = "#";
 
       const visited = new Set();
       do {
-        // Position and direction are used as in key for loop finding
+        // Position and direction are used as key for loop finding
         const key = `${guard.x}::${guard.y}::${guard.direction}`;
         if (visited.has(key)) {
           // Location with direction already visited indicating a loop
           count += 1;
           break;
-        } else {
-          // Location with direction not yet visited
-          visited.add(key);
         }
-        move(guard, cloned);
-      } while (!isOnEdge(guard, cloned));
+        // Location with direction not yet visited
+        visited.add(key);
+        move(guard, grid);
+      } while (!isOnEdge(guard, grid));
+
+      // Remove obstacle
+      grid[y][x] = ".";
     }
   }
   return count;
