@@ -72,14 +72,6 @@ function getNeighbours(position, grid) {
   return neighbours;
 }
 
-function isOnEdge(position, grid) {
-  return (
-    position.x === 0 ||
-    position.x === grid[0].length - 1 ||
-    position.y === 0 ||
-    position.y === grid.length - 1
-  );
-}
 
 function solvePart1() {
   const grid = parseInput();
