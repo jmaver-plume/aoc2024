@@ -7,16 +7,16 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  return data.split("\n").map((line) => line.split(""));
 }
 
 function solvePart1() {
-  const input = parseInput();
+  const grid = parseInput();
   return;
 }
 
 function solvePart2() {
-  const input = parseInput();
+  const grid = parseInput();
   return;
 }
 
