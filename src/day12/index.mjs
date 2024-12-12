@@ -72,7 +72,6 @@ function getNeighbours(position, grid) {
   return neighbours;
 }
 
-
 function solvePart1() {
   const grid = parseInput();
   const maxX = grid[0].length - 1;
@@ -133,14 +132,25 @@ function solvePart1() {
   return result;
 }
 
+/**
+ * "Compacts" a list by removing any direct neighbours
+ * @param {number[]}list
+ * @returns {number[]}
+ * @example
+ * ```javascript
+ * compact([1,2,4,5,7])
+ * // [2,5,7]
+ * ```
+ */
 function compact(list) {
   if (list.length === 0) {
     return [];
   }
+  // Sort for compaction to work
   list.sort((a, b) => a - b);
   const result = [list[0]];
   for (let i = 1; i < list.length; i++) {
-    if (result.at(-1) + 1 === list[i]) {
+    if (result[result.length - 1] + 1 === list[i]) {
       result[result.length - 1] = list[i];
     } else {
       result.push(list[i]);
