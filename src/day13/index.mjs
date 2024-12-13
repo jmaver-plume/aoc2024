@@ -31,8 +31,46 @@ function parseInput() {
 }
 
 function solvePart1() {
-  const input = parseInput();
-  return;
+  const claws = parseInput();
+  return claws
+    .map((claw) => {
+      const { prize, a, b } = claw;
+      const visited = new Map();
+
+      function solver(position) {
+        const positionKey = `${position.x}::${position.y}`;
+        if (visited.has(positionKey)) {
+          return visited.get(positionKey);
+        }
+        if (position.x === prize.x && position.y === prize.y) {
+          return position;
+        }
+        if (position.x > prize.x || position.y > prize.y) {
+          return { ...position, cost: Infinity };
+        }
+        const aPosition = {
+          x: position.x + a.x,
+          y: position.y + a.y,
+          cost: position.cost + 3,
+        };
+        const bPosition = {
+          x: position.x + b.x,
+          y: position.y + b.y,
+          cost: position.cost + 1,
+        };
+        const aSolution = solver(aPosition);
+        const bSolution = solver(bPosition);
+        const solution =
+          aSolution.cost < bSolution.cost ? aSolution : bSolution;
+        visited.set(positionKey, solution);
+        return solution;
+      }
+
+      const result = solver({ x: 0, y: 0, cost: 0 });
+      return result.cost;
+    })
+    .filter((cost) => cost !== Infinity)
+    .reduce((acc, value) => acc + value, 0);
 }
 
 function solvePart2() {
