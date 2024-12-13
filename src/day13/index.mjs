@@ -7,7 +7,27 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  const rawClaws = data.split("\n\n");
+  return rawClaws.map((rawClaw) => {
+    const [rawButtonA, rawButtonB, rawPrize] = rawClaw.split("\n");
+    const buttonAMatches = rawButtonA.match(/Button A: X\+(\d+), Y\+(\d+)/);
+    const buttonBMatches = rawButtonB.match(/Button B: X\+(\d+), Y\+(\d+)/);
+    const prizeMatches = rawPrize.match(/Prize: X=(\d+), Y=(\d+)/);
+    return {
+      prize: {
+        x: parseInt(prizeMatches[1]),
+        y: parseInt(prizeMatches[2]),
+      },
+      a: {
+        x: parseInt(buttonAMatches[1]),
+        y: parseInt(buttonAMatches[2]),
+      },
+      b: {
+        x: parseInt(buttonBMatches[1]),
+        y: parseInt(buttonBMatches[2]),
+      },
+    };
+  });
 }
 
 function solvePart1() {
