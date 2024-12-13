@@ -75,43 +75,53 @@ function solvePart1() {
 
 function solvePart2() {
   const claws = parseInput();
-  return claws
-    .map((claw) => {
-      const matrix = [
-        [claw.a.x, claw.b.x, claw.prize.x + 10000000000000],
-        [claw.a.y, claw.b.y, claw.prize.y + 10000000000000],
-      ];
+  return (
+    claws
+      .map((claw) => {
+        // Use https://en.wikipedia.org/wiki/Gaussian_elimination
+        // 94   22   8400
+        // 34   67   5400
+        const matrix = [
+          [claw.a.x, claw.b.x, claw.prize.x],
+          [claw.a.y, claw.b.y, claw.prize.y],
+        ];
 
-      // Simplify first column
-      const multipliedFirst = matrix[0].map((v) => v * matrix[1][0]);
-      const multipliedSecond = matrix[1].map((v) => v * matrix[0][0]);
-      matrix[0] = multipliedFirst;
-      matrix[1] = [
-        multipliedSecond[0] - multipliedFirst[0],
-        multipliedSecond[1] - multipliedFirst[1],
-        multipliedSecond[2] - multipliedFirst[2],
-      ];
-      matrix[1] = [0, 1, matrix[1][2] / matrix[1][1]];
-      if (parseInt(matrix[1][2]) !== matrix[1][2]) {
-        return null;
-      }
+        // Simplify first column
+        // 3196   748   285600
+        //    0     1       40
+        const multipliedFirst = matrix[0].map((v) => v * matrix[1][0]);
+        const multipliedSecond = matrix[1].map((v) => v * matrix[0][0]);
+        matrix[0] = multipliedFirst;
+        matrix[1] = [
+          multipliedSecond[0] - multipliedFirst[0],
+          multipliedSecond[1] - multipliedFirst[1],
+          multipliedSecond[2] - multipliedFirst[2],
+        ];
+        matrix[1] = [0, 1, matrix[1][2] / matrix[1][1]];
+        if (parseInt(matrix[1][2]) !== matrix[1][2]) {
+          return null;
+        }
 
-      // Simplify second column
-      const multipliedSecond2 = matrix[1].map((v) => v * matrix[0][1]);
-      matrix[0] = [
-        matrix[0][0],
-        matrix[0][1] - multipliedSecond2[1],
-        matrix[0][2] - multipliedSecond2[2],
-      ];
-      matrix[0] = [1, 0, matrix[0][2] / matrix[0][0]];
-      if (parseInt(matrix[0][2]) !== matrix[0][2]) {
-        return null;
-      }
+        // Simplify second column
+        //    1     0       80
+        //    0     1       40
+        const multipliedSecond2 = matrix[1].map((v) => v * matrix[0][1]);
+        matrix[0] = [
+          matrix[0][0],
+          matrix[0][1] - multipliedSecond2[1],
+          matrix[0][2] - multipliedSecond2[2],
+        ];
+        matrix[0] = [1, 0, matrix[0][2] / matrix[0][0]];
+        if (parseInt(matrix[0][2]) !== matrix[0][2]) {
+          return null;
+        }
 
-      return matrix[0][2] * 3 + matrix[1][2] * 1;
-    })
-    .filter((v) => v !== null)
-    .reduce((sum, val) => sum + val, 0);
+        return matrix[0][2] * 3 + matrix[1][2] * 1;
+      })
+      // null values are not solvable
+      .filter((v) => v !== null)
+      .reduce((sum, val) => sum + val, 0)
+  );
 }
 
 // Run code
