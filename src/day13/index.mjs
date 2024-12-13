@@ -37,6 +37,7 @@ function solvePart1() {
       const { prize, a, b } = claw;
       const visited = new Map();
 
+      // Depth first search solver with caching
       function solver(position) {
         const positionKey = `${position.x}::${position.y}`;
         if (visited.has(positionKey)) {
