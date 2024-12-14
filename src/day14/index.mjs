@@ -24,7 +24,40 @@ function parseInput() {
 
 function solvePart1() {
   const robots = parseInput();
-  return;
+  const maxX = 101;
+  // const maxX = 11;
+  const maxY = 103;
+  // const maxY = 7;
+  const midX = (maxX - 1) / 2;
+  const midY = (maxY - 1) / 2;
+  const positions = robots
+    .map((robot) => {
+      const x = (robot.p.x + 100 * robot.v.x) % maxX;
+      const y = (robot.p.y + 100 * robot.v.y) % maxY;
+      return { x: x < 0 ? maxX + x : x, y: y < 0 ? maxY + y : y };
+    })
+    .filter((position) => position.x !== midX && position.y !== midY);
+
+  return Object.values(
+    Object.groupBy(positions, ({ x, y }) => {
+      if (x < midX && y < midY) {
+        return 1;
+      }
+      if (x > midX && y < midY) {
+        return 2;
+      }
+      if (x < midX && y > midY) {
+        return 3;
+      }
+      if (x > midX && y > midY) {
+        return 4;
+      }
+
+      throw new Error(`Invalid position!`);
+    }),
+  )
+    .map((v) => v.length)
+    .reduce((acc, val) => acc * val, 1);
 }
 
 function solvePart2() {
