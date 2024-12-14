@@ -7,16 +7,28 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  return data.split("\n").map((line) => {
+    const matches = [...line.matchAll(/([+-]?\d+)/g)];
+    return {
+      p: {
+        x: parseInt(matches[0][0]),
+        y: parseInt(matches[1][0]),
+      },
+      v: {
+        x: parseInt(matches[2][0]),
+        y: parseInt(matches[3][0]),
+      },
+    };
+  });
 }
 
 function solvePart1() {
-  const input = parseInput();
+  const robots = parseInput();
   return;
 }
 
 function solvePart2() {
-  const input = parseInput();
+  const robots = parseInput();
   return;
 }
 
