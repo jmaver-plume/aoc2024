@@ -50,10 +50,34 @@ function parseInput() {
   });
 }
 
+function getQuadrant(position) {
+  const midX = (MAX_X - 1) / 2;
+  const midY = (MAX_Y - 1) / 2;
+
+  if (position.x < midX && position.y < midY) {
+    return 1;
+  }
+
+  if (position.x > midX && position.y < midY) {
+    return 2;
+  }
+
+  if (position.x < midX && position.y > midY) {
+    return 3;
+  }
+
+  if (position.x > midX && position.y > midY) {
+    return 4;
+  }
+
+  throw new Error("Invalid position!");
+}
+
 function solvePart1() {
   const robots = parseInput();
   const midX = (MAX_X - 1) / 2;
   const midY = (MAX_Y - 1) / 2;
+  // Robot positions after 100 seconds
   const positions = robots
     .map((robot) => {
       const x = (robot.p.x + 100 * robot.v.x) % MAX_X;
@@ -61,24 +85,10 @@ function solvePart1() {
       return { x: x < 0 ? MAX_X + x : x, y: y < 0 ? MAX_Y + y : y };
     })
     .filter((position) => position.x !== midX && position.y !== midY);
-  return Object.values(
-    Object.groupBy(positions, ({ x, y }) => {
-      if (x < midX && y < midY) {
-        return 1;
-      }
-      if (x > midX && y < midY) {
-        return 2;
-      }
-      if (x < midX && y > midY) {
-        return 3;
-      }
-      if (x > midX && y > midY) {
-        return 4;
-      }
-
-      throw new Error(`Invalid position!`);
-    }),
-  )
+  const quadrantToPositions = Object.groupBy(positions, (position) =>
+    getQuadrant(position),
+  );
+  return Object.values(quadrantToPositions)
     .map((v) => v.length)
     .reduce((acc, val) => acc * val, 1);
 }
@@ -91,10 +101,9 @@ function walk(robot) {
 }
 
 function solvePart2() {
-  // When running with a different output you need to adjust these 2 values as they are input dependent
-  const MIDDLE_X = 53;
-  const MIDDLE_X_COUNT = 27;
+  const robots = parseInput();
 
+  // Create an empty grid (used later for printing)
   const grid = [];
   for (let i = 0; i < MAX_Y; i++) {
     const row = [];
@@ -104,30 +113,34 @@ function solvePart2() {
     grid.push(row);
   }
 
+  // When running with a different output you need to adjust these 2 values as they are input dependent
+  const MIDDLE_X = 53;
+  const MIDDLE_X_COUNT = 27;
+  // I noticed all robots have the same cycle length and cycle start
+  const CYCLE_LENGTH = 10403;
+
   const counts = [];
-  const robots = parseInput();
-  for (let i = 0; i <= 10403; i++) {
+  for (let i = 1; i <= CYCLE_LENGTH; i++) {
     robots.forEach((robot) => {
       // unset previous
       grid[robot.p.y][robot.p.x] = ".";
 
       walk(robot);
 
-      // set next/current
+      // set next
       grid[robot.p.y][robot.p.x] = "X";
     });
 
-    let count = 0;
+    let middleXCount = 0;
     for (let y = 0; y < MAX_Y; y++) {
       if (grid[y][MIDDLE_X] === "X") {
-        count += 1;
+        middleXCount += 1;
       }
     }
-
-    counts.push({ i, count });
+    counts.push({ i, count: middleXCount });
 
     // I first logged sorted counts to find the top counts then I printer the grid
-    if (count >= MIDDLE_X_COUNT) {
+    if (middleXCount >= MIDDLE_X_COUNT) {
       console.log(`### Start of ${i} ###`);
       print(robots.map((robot) => robot.p));
       console.log(`### End of ${i} ###`);
