@@ -12,6 +12,7 @@
   "description": "",
   "type": "module",
   "dependencies": {
+    "lodash": "^4.17.21",
     "prettier": "^3.4.1"
   }
 }
