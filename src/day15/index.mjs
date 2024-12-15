@@ -203,13 +203,7 @@ function move(robot, direction, grid) {
   }
 }
 
-function solvePart1() {
-  const { grid, moves } = parseInput();
-  const robot = findRobot(grid);
-  moves.forEach((direction) => {
-    move(robot, direction, grid);
-  });
-
+function getGPSCoordinateSum(grid) {
   let result = 0;
   for (const { x, y, value } of makeGridIterator(grid)) {
     if (value !== "O") {
@@ -218,6 +212,15 @@ function solvePart1() {
     result += 100 * y + x;
   }
   return result;
+}
+
+function solvePart1() {
+  const { grid, moves } = parseInput();
+  const robot = findRobot(grid);
+  moves.forEach((direction) => {
+    move(robot, direction, grid);
+  });
+  return getGPSCoordinateSum(grid);
 }
 
 function isLargeBox(value) {
@@ -270,16 +273,24 @@ function solvePart2() {
   moves.forEach((direction) => {
     const nextPosition = getNextPosition(robot, direction);
     const nextValue = largeGrid[nextPosition.y][nextPosition.x];
+
     if (nextValue === "#") {
-    } else if (nextValue === ".") {
+      return;
+    }
+
+    if (nextValue === ".") {
       moveRobot(robot, direction, largeGrid);
-    } else if (isLargeBox(nextValue)) {
-      const toMove = [nextPosition];
-      const visited = new Set();
-      while (toMove.length) {
-        const position = toMove.shift();
+      return;
+    }
+
+    if (isLargeBox(nextValue)) {
+      // Find all boxes that should be moved
+      const boxesToMove = new Set();
+      const queue = [nextPosition];
+      while (queue.length) {
+        const position = queue.shift();
         const key = `${position.x}::${position.y}`;
-        if (visited.has(key)) {
+        if (boxesToMove.has(key)) {
           continue;
         }
         const value = largeGrid[position.y][position.x];
@@ -287,43 +298,47 @@ function solvePart2() {
           return;
         } else if (isLargeBox(value)) {
           if (value === "[") {
-            toMove.push(
+            queue.push(
               { x: position.x, y: position.y },
               { x: position.x + 1, y: position.y },
               getNextPosition({ x: position.x, y: position.y }, direction),
               getNextPosition({ x: position.x + 1, y: position.y }, direction),
             );
           } else {
-            toMove.push(
+            queue.push(
               { x: position.x - 1, y: position.y },
               { x: position.x, y: position.y },
               getNextPosition({ x: position.x - 1, y: position.y }, direction),
               getNextPosition({ x: position.x, y: position.y }, direction),
             );
           }
-          visited.add(key);
+          boxesToMove.add(key);
         }
       }
 
       const change = getChange(direction);
-      const currentBoxes = [...visited].map((s) => {
+      const boxes = [...boxesToMove].map((s) => {
         const [x, y] = s.split("::");
         return { x: parseInt(x), y: parseInt(y), value: largeGrid[y][x] };
       });
 
-      const newBoxes = currentBoxes.map((box) => ({
+      // The same boxes moved to the new position
+      const newBoxes = boxes.map((box) => ({
         ...box,
         ...changePosition(box, change),
       }));
 
       if (!newBoxes.every((box) => largeGrid[box.y][box.x] !== "#")) {
+        // If any of the new positions is a wall the move cannot complete
         return;
       }
 
-      currentBoxes.forEach((box) => {
+      // Unset old box locations
+      boxes.forEach((box) => {
         largeGrid[box.y][box.x] = ".";
       });
 
+      // Set new box locations
       newBoxes.forEach((box) => {
         largeGrid[box.y][box.x] = box.value;
       });
@@ -332,18 +347,10 @@ function solvePart2() {
     }
   });
 
+  // Print final result for debugging purposes
   print(largeGrid);
 
-  let result = 0;
-  for (const { x, y, value } of makeGridIterator(largeGrid)) {
-    if (value !== "[") {
-      continue;
-    }
-    const yDist = Math.min(y,);
-    const xDist = Math.min(x, );
-    result += 100 * yDist + xDist;
-  }
-  return result;
+  return getGPSCoordinateSum(grid);
 }
 
 // Run code
