@@ -217,8 +217,31 @@ function solvePart1() {
     }
     result += 100 * y + x;
   }
-
   return result;
+}
+
+function isLargeBox(value) {
+  return value === "[" || value === "]";
+}
+
+function getChange(direction) {
+  switch (direction) {
+    case Direction.Left:
+      return { x: -1, y: 0 };
+    case Direction.Right:
+      return { x: +1, y: 0 };
+    case Direction.Down:
+      return { x: 0, y: +1 };
+    case Direction.Up:
+      return { x: 0, y: -1 };
+  }
+}
+
+function changePosition(position, change) {
+  return {
+    x: position.x + change.x,
+    y: position.y + change.y,
+  };
 }
 
 function solvePart2() {
@@ -244,47 +267,83 @@ function solvePart2() {
   }
 
   const robot = findRobot(largeGrid);
-
   moves.forEach((direction) => {
-    // find next position
-    let nextPosition;
-    switch (direction) {
-      case ">":
-        nextPosition = { x: robot.x + 1, y: robot.y };
-        break;
-      case "<":
-        nextPosition = { x: robot.x - 1, y: robot.y };
-        break;
-      case "v":
-        nextPosition = { x: robot.x, y: robot.y + 1 };
-        break;
-      case "^":
-        nextPosition = { x: robot.x, y: robot.y - 1 };
-        break;
-      default:
-        throw new Error(`Unknown direction ${direction}!`);
-    }
-
-    const nextValue = grid[nextPosition.y][nextPosition.x];
+    const nextPosition = getNextPosition(robot, direction);
+    const nextValue = largeGrid[nextPosition.y][nextPosition.x];
     if (nextValue === "#") {
     } else if (nextValue === ".") {
-      grid[robot.y][robot.x] = ".";
-      robot.x = nextPosition.x;
-      robot.y = nextPosition.y;
-      grid[robot.y][robot.x] = "@";
-    } else if (nextValue === "O") {
-      if (canPush(nextPosition, direction, grid)) {
-        push(nextPosition, direction, grid);
-        grid[robot.y][robot.x] = ".";
-        robot.x = nextPosition.x;
-        robot.y = nextPosition.y;
-        grid[robot.y][robot.x] = "@";
+      moveRobot(robot, direction, largeGrid);
+    } else if (isLargeBox(nextValue)) {
+      const toMove = [nextPosition];
+      const visited = new Set();
+      while (toMove.length) {
+        const position = toMove.shift();
+        const key = `${position.x}::${position.y}`;
+        if (visited.has(key)) {
+          continue;
+        }
+        const value = largeGrid[position.y][position.x];
+        if (value === "#") {
+          return;
+        } else if (isLargeBox(value)) {
+          if (value === "[") {
+            toMove.push(
+              { x: position.x, y: position.y },
+              { x: position.x + 1, y: position.y },
+              getNextPosition({ x: position.x, y: position.y }, direction),
+              getNextPosition({ x: position.x + 1, y: position.y }, direction),
+            );
+          } else {
+            toMove.push(
+              { x: position.x - 1, y: position.y },
+              { x: position.x, y: position.y },
+              getNextPosition({ x: position.x - 1, y: position.y }, direction),
+              getNextPosition({ x: position.x, y: position.y }, direction),
+            );
+          }
+          visited.add(key);
+        }
       }
+
+      const change = getChange(direction);
+      const currentBoxes = [...visited].map((s) => {
+        const [x, y] = s.split("::");
+        return { x: parseInt(x), y: parseInt(y), value: largeGrid[y][x] };
+      });
+
+      const newBoxes = currentBoxes.map((box) => ({
+        ...box,
+        ...changePosition(box, change),
+      }));
+
+      if (!newBoxes.every((box) => largeGrid[box.y][box.x] !== "#")) {
+        return;
+      }
+
+      currentBoxes.forEach((box) => {
+        largeGrid[box.y][box.x] = ".";
+      });
+
+      newBoxes.forEach((box) => {
+        largeGrid[box.y][box.x] = box.value;
+      });
+
+      moveRobot(robot, direction, largeGrid);
     }
   });
 
   print(largeGrid);
-  return;
+
+  let result = 0;
+  for (const { x, y, value } of makeGridIterator(largeGrid)) {
+    if (value !== "[") {
+      continue;
+    }
+    const yDist = Math.min(y,);
+    const xDist = Math.min(x, );
+    result += 100 * yDist + xDist;
+  }
+  return result;
 }
 
 // Run code
