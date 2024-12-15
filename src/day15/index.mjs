@@ -166,7 +166,28 @@ function solvePart1() {
 }
 
 function solvePart2() {
-  const input = parseInput();
+  const { grid, moves } = parseInput();
+
+  // increase grid size
+  const largeGrid = [];
+  for (let y = 0; y < grid.length; y++) {
+    const row = [];
+    for (let x = 0; x < grid[0].length; x++) {
+      const value = grid[y][x];
+      if (value === "#" || value === ".") {
+        row.push(value, value);
+      } else if (value === "@") {
+        row.push(value);
+      } else if (value === "O") {
+        row.push("[", "]");
+      } else {
+        throw new Error(`Invalid grid element ${value}!`);
+      }
+    }
+    largeGrid.push(row);
+  }
+
+  print(largeGrid)
   return;
 }
 
