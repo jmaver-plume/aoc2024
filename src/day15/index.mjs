@@ -7,7 +7,13 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  const [rawGrid, rawMoves] = data.split("\n\n");
+  const grid = rawGrid.split("\n").map((line) => line.split(""));
+  const moves = rawMoves
+    .split("\n")
+    .map((line) => line.split(""))
+    .flat();
+  return { grid, moves };
 }
 
 function solvePart1() {
