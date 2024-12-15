@@ -152,10 +152,17 @@ function solvePart1() {
       default:
         throw new Error(`Unknown value ${nextValue} in the grid!`);
     }
-
-    print(grid);
   });
-  return;
+
+  let result = 0;
+  for (const { x, y, value } of makeGridIterator(grid)) {
+    if (value !== "O") {
+      continue;
+    }
+    result += 100 * y + x;
+  }
+
+  return result;
 }
 
 function solvePart2() {
