@@ -16,8 +16,25 @@ function parseInput() {
   return { grid, moves };
 }
 
+function* makeGridIterator(grid) {
+  for (let y = 0; y < grid.length; y++) {
+    for (let x = 0; x < grid[0].length; x++) {
+      yield { x, y, value: grid[y][x], grid };
+    }
+  }
+}
+
+function findRobot(grid) {
+  for (const { x, y, value } of makeGridIterator(grid)) {
+    if (value === "@") {
+      return { x, y };
+    }
+  }
+}
+
 function solvePart1() {
-  const input = parseInput();
+  const { grid, moves } = parseInput();
+  const robot = findRobot(grid)
   return;
 }
 
