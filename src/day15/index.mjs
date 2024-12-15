@@ -166,26 +166,23 @@ function push(position, direction, grid) {
   }
 }
 
-function move(robot, direction, grid) {
-  // find next position
-  let nextPosition;
+function getNextPosition(position, direction) {
   switch (direction) {
     case ">":
-      nextPosition = { x: robot.x + 1, y: robot.y };
-      break;
+      return { x: position.x + 1, y: position.y };
     case "<":
-      nextPosition = { x: robot.x - 1, y: robot.y };
-      break;
+      return { x: position.x - 1, y: position.y };
     case "v":
-      nextPosition = { x: robot.x, y: robot.y + 1 };
-      break;
+      return { x: position.x, y: position.y + 1 };
     case "^":
-      nextPosition = { x: robot.x, y: robot.y - 1 };
-      break;
+      return { x: position.x, y: position.y - 1 };
     default:
       throw new Error(`Unknown direction ${direction}!`);
   }
+}
 
+function move(robot, direction, grid) {
+  const nextPosition = getNextPosition(robot, direction);
   const nextValue = grid[nextPosition.y][nextPosition.x];
   if (nextValue === "#") {
   } else if (nextValue === ".") {
@@ -209,11 +206,7 @@ function solvePart1() {
   const robot = findRobot(grid);
   moves.forEach((direction) => {
     move(robot, direction, grid);
-    // console.log(`After direction: ${direction}`);
-    // print(grid);
   });
-
-  print(grid);
 
   let result = 0;
   for (const { x, y, value } of makeGridIterator(grid)) {
@@ -230,25 +223,65 @@ function solvePart2() {
   const { grid, moves } = parseInput();
 
   // increase grid size
-  // const largeGrid = [];
-  // for (let y = 0; y < grid.length; y++) {
-  //   const row = [];
-  //   for (let x = 0; x < grid[0].length; x++) {
-  //     const value = grid[y][x];
-  //     if (value === "#" || value === ".") {
-  //       row.push(value, value);
-  //     } else if (value === "@") {
-  //       row.push(value);
-  //     } else if (value === "O") {
-  //       row.push("[", "]");
-  //     } else {
-  //       throw new Error(`Invalid grid element ${value}!`);
-  //     }
-  //   }
-  //   largeGrid.push(row);
-  // }
-  //
-  // print(largeGrid);
+  const largeGrid = [];
+  for (let y = 0; y < grid.length; y++) {
+    const row = [];
+    for (let x = 0; x < grid[0].length; x++) {
+      const value = grid[y][x];
+      if (value === "#" || value === ".") {
+        row.push(value, value);
+      } else if (value === "@") {
+        row.push(value, ".");
+      } else if (value === "O") {
+        row.push("[", "]");
+      } else {
+        throw new Error(`Invalid grid element ${value}!`);
+      }
+    }
+    largeGrid.push(row);
+  }
+
+  const robot = findRobot(largeGrid);
+
+  moves.forEach((direction) => {
+    // find next position
+    let nextPosition;
+    switch (direction) {
+      case ">":
+        nextPosition = { x: robot.x + 1, y: robot.y };
+        break;
+      case "<":
+        nextPosition = { x: robot.x - 1, y: robot.y };
+        break;
+      case "v":
+        nextPosition = { x: robot.x, y: robot.y + 1 };
+        break;
+      case "^":
+        nextPosition = { x: robot.x, y: robot.y - 1 };
+        break;
+      default:
+        throw new Error(`Unknown direction ${direction}!`);
+    }
+
+    const nextValue = grid[nextPosition.y][nextPosition.x];
+    if (nextValue === "#") {
+    } else if (nextValue === ".") {
+      grid[robot.y][robot.x] = ".";
+      robot.x = nextPosition.x;
+      robot.y = nextPosition.y;
+      grid[robot.y][robot.x] = "@";
+    } else if (nextValue === "O") {
+      if (canPush(nextPosition, direction, grid)) {
+        push(nextPosition, direction, grid);
+        grid[robot.y][robot.x] = ".";
+        robot.x = nextPosition.x;
+        robot.y = nextPosition.y;
+        grid[robot.y][robot.x] = "@";
+      }
+    }
+  });
+
+  print(largeGrid);
   return;
 }
 
