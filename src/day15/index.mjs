@@ -201,16 +201,14 @@ function moveRobot(robot, direction, grid) {
 function getGPSCoordinateSum(grid) {
   let result = 0;
   for (const { x, y, value } of makeGridIterator(grid)) {
-    if (value !== "O") {
-      continue;
+    if (value === Tile.SmallBox || value === Tile.LargeBoxLeft) {
+      result += 100 * y + x;
     }
-    result += 100 * y + x;
   }
   return result;
 }
 
-function solvePart1() {
-  const { grid, moves } = parseInput();
+function solve(grid, moves) {
   const robot = findRobotStartingPosition(grid);
   moves.forEach((direction) => {
     const nextPosition = getNextPosition(robot, direction);
@@ -218,45 +216,98 @@ function solvePart1() {
     if (nextValue === Tile.Wall) {
       return;
     }
+
     if (nextValue === Tile.Empty) {
-      return moveRobot(robot, direction, grid);
-    }
-    if (canPush(nextPosition, direction, grid)) {
-      push(nextPosition, direction, grid);
       moveRobot(robot, direction, grid);
+      return;
     }
+
+    // Find all boxes that should be moved
+    const boxesToMove = new Set();
+    const queue = [nextPosition];
+    while (queue.length) {
+      const position = queue.shift();
+      const key = `${position.x}::${position.y}`;
+      if (boxesToMove.has(key)) {
+        continue;
+      }
+      const value = grid[position.y][position.x];
+      if (value === Tile.Wall) {
+        return;
+      }
+      if (value === Tile.SmallBox) {
+        queue.push(
+          { x: position.x, y: position.y },
+          getNextPosition({ x: position.x, y: position.y }, direction),
+        );
+        boxesToMove.add(key);
+      }
+      if (value === Tile.LargeBoxLeft) {
+        queue.push(
+          { x: position.x, y: position.y },
+          { x: position.x + 1, y: position.y },
+          getNextPosition({ x: position.x, y: position.y }, direction),
+          getNextPosition({ x: position.x + 1, y: position.y }, direction),
+        );
+        boxesToMove.add(key);
+      }
+      if (value === Tile.LargeBoxRight) {
+        queue.push(
+          { x: position.x - 1, y: position.y },
+          { x: position.x, y: position.y },
+          getNextPosition({ x: position.x - 1, y: position.y }, direction),
+          getNextPosition({ x: position.x, y: position.y }, direction),
+        );
+        boxesToMove.add(key);
+      }
+    }
+
+    const boxes = [...boxesToMove].map((s) => {
+      const [x, y] = s.split("::");
+      return { x: parseInt(x), y: parseInt(y), value: grid[y][x] };
+    });
+
+    // The same boxes moved to the new position
+    const newBoxes = boxes.map((box) => ({
+      ...box,
+      ...{ ...box, ...getNextPosition(box, direction) },
+    }));
+
+    if (!newBoxes.every((box) => grid[box.y][box.x] !== "#")) {
+      // If any of the new positions is a wall the move cannot complete
+      return;
+    }
+
+    // Unset old box locations
+    boxes.forEach((box) => {
+      grid[box.y][box.x] = ".";
+    });
+
+    // Set new box locations
+    newBoxes.forEach((box) => {
+      grid[box.y][box.x] = box.value;
+    });
+
+    // Move robot
+    moveRobot(robot, direction, grid);
   });
+  print(grid);
   return getGPSCoordinateSum(grid);
 }
 
-function isLargeBox(value) {
-  return value === Tile.LargeBoxLeft || value === Tile.LargeBoxRight;
-}
+function solvePart1() {
+  // Parse input
+  const { grid, moves } = parseInput();
 
-function getChange(direction) {
-  switch (direction) {
-    case Direction.Left:
-      return { x: -1, y: 0 };
-    case Direction.Right:
-      return { x: +1, y: 0 };
-    case Direction.Down:
-      return { x: 0, y: +1 };
-    case Direction.Up:
-      return { x: 0, y: -1 };
-  }
-}
-
-function changePosition(position, change) {
-  return {
-    x: position.x + change.x,
-    y: position.y + change.y,
-  };
+  // Solve
+  return solve(grid, moves);
 }
 
 function solvePart2() {
+  // Parse input
   const { grid, moves } = parseInput();
 
-  // increase grid size
+  // Increase grid size
   const largeGrid = [];
   for (let y = 0; y < grid.length; y++) {
     const row = [];
@@ -275,83 +326,8 @@ function solvePart2() {
     largeGrid.push(row);
   }
 
-  const robot = findRobotStartingPosition(largeGrid);
-  moves.forEach((direction) => {
-    const nextPosition = getNextPosition(robot, direction);
-    const nextValue = largeGrid[nextPosition.y][nextPosition.x];
-    if (nextValue === Tile.Wall) {
-      return;
-    }
-    if (nextValue === Tile.Empty) {
-      moveRobot(robot, direction, largeGrid);
-      return;
-    }
-    // Find all boxes that should be moved
-    const boxesToMove = new Set();
-    const queue = [nextPosition];
-    while (queue.length) {
-      const position = queue.shift();
-      const key = `${position.x}::${position.y}`;
-      if (boxesToMove.has(key)) {
-        continue;
-      }
-      const value = largeGrid[position.y][position.x];
-      if (value === "#") {
-        return;
-      } else if (isLargeBox(value)) {
-        if (value === "[") {
-          queue.push(
-            { x: position.x, y: position.y },
-            { x: position.x + 1, y: position.y },
-            getNextPosition({ x: position.x, y: position.y }, direction),
-            getNextPosition({ x: position.x + 1, y: position.y }, direction),
-          );
-        } else {
-          queue.push(
-            { x: position.x - 1, y: position.y },
-            { x: position.x, y: position.y },
-            getNextPosition({ x: position.x - 1, y: position.y }, direction),
-            getNextPosition({ x: position.x, y: position.y }, direction),
-          );
-        }
-        boxesToMove.add(key);
-      }
-    }
-
-    const change = getChange(direction);
-    const boxes = [...boxesToMove].map((s) => {
-      const [x, y] = s.split("::");
-      return { x: parseInt(x), y: parseInt(y), value: largeGrid[y][x] };
-    });
-
-    // The same boxes moved to the new position
-    const newBoxes = boxes.map((box) => ({
-      ...box,
-      ...changePosition(box, change),
-    }));
-
-    if (!newBoxes.every((box) => largeGrid[box.y][box.x] !== "#")) {
-      // If any of the new positions is a wall the move cannot complete
-      return;
-    }
-
-    // Unset old box locations
-    boxes.forEach((box) => {
-      largeGrid[box.y][box.x] = ".";
-    });
-
-    // Set new box locations
-    newBoxes.forEach((box) => {
-      largeGrid[box.y][box.x] = box.value;
-    });
-
-    moveRobot(robot, direction, largeGrid);
-  });
-
-  // Print final result for debugging purposes
-  // print(largeGrid);
-
-  return getGPSCoordinateSum(grid);
+  // Solve
+  return solve(largeGrid, moves);
 }
 
 // Run code
