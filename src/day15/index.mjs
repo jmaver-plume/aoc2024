@@ -181,22 +181,24 @@ function getNextPosition(position, direction) {
   }
 }
 
+function moveRobot(robot, direction, grid) {
+  const nextPosition = getNextPosition(robot, direction);
+  grid[robot.y][robot.x] = ".";
+  robot.x = nextPosition.x;
+  robot.y = nextPosition.y;
+  grid[robot.y][robot.x] = "@";
+}
+
 function move(robot, direction, grid) {
   const nextPosition = getNextPosition(robot, direction);
   const nextValue = grid[nextPosition.y][nextPosition.x];
   if (nextValue === "#") {
   } else if (nextValue === ".") {
-    grid[robot.y][robot.x] = ".";
-    robot.x = nextPosition.x;
-    robot.y = nextPosition.y;
-    grid[robot.y][robot.x] = "@";
+    moveRobot(robot, direction, grid);
   } else if (nextValue === "O") {
     if (canPush(nextPosition, direction, grid)) {
       push(nextPosition, direction, grid);
-      grid[robot.y][robot.x] = ".";
-      robot.x = nextPosition.x;
-      robot.y = nextPosition.y;
-      grid[robot.y][robot.x] = "@";
+      moveRobot(robot, direction, grid);
     }
   }
 }
