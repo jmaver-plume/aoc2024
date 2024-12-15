@@ -39,9 +39,18 @@ const Direction = {
   Up: "^",
 };
 
-function findRobot(grid) {
+const Tile = {
+  Robot: "@",
+  SmallBox: "O",
+  Empty: ".",
+  Wall: "#",
+  LargeBoxLeft: "[",
+  LargeBoxRight: "]",
+};
+
+function findRobotStartingPosition(grid) {
   for (const { x, y, value } of makeGridIterator(grid)) {
-    if (value === "@") {
+    if (value === Tile.Robot) {
       return { x, y };
     }
   }
@@ -168,13 +177,13 @@ function push(position, direction, grid) {
 
 function getNextPosition(position, direction) {
   switch (direction) {
-    case ">":
+    case Direction.Right:
       return { x: position.x + 1, y: position.y };
-    case "<":
+    case Direction.Left:
       return { x: position.x - 1, y: position.y };
-    case "v":
+    case Direction.Down:
       return { x: position.x, y: position.y + 1 };
-    case "^":
+    case Direction.Up:
       return { x: position.x, y: position.y - 1 };
     default:
       throw new Error(`Unknown direction ${direction}!`);
@@ -216,7 +225,7 @@ function getGPSCoordinateSum(grid) {
 
 function solvePart1() {
   const { grid, moves } = parseInput();
-  const robot = findRobot(grid);
+  const robot = findRobotStartingPosition(grid);
   moves.forEach((direction) => {
     move(robot, direction, grid);
   });
@@ -269,7 +278,7 @@ function solvePart2() {
     largeGrid.push(row);
   }
 
-  const robot = findRobot(largeGrid);
+  const robot = findRobotStartingPosition(largeGrid);
   moves.forEach((direction) => {
     const nextPosition = getNextPosition(robot, direction);
     const nextValue = largeGrid[nextPosition.y][nextPosition.x];
@@ -348,7 +357,7 @@ function solvePart2() {
   });
 
   // Print final result for debugging purposes
-  print(largeGrid);
+  // print(largeGrid);
 
   return getGPSCoordinateSum(grid);
 }
