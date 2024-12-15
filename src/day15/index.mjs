@@ -192,23 +192,26 @@ function getNextPosition(position, direction) {
 
 function moveRobot(robot, direction, grid) {
   const nextPosition = getNextPosition(robot, direction);
-  grid[robot.y][robot.x] = ".";
+  grid[robot.y][robot.x] = Tile.Empty;
   robot.x = nextPosition.x;
   robot.y = nextPosition.y;
-  grid[robot.y][robot.x] = "@";
+  grid[robot.y][robot.x] = Tile.Robot;
 }
 
 function move(robot, direction, grid) {
   const nextPosition = getNextPosition(robot, direction);
   const nextValue = grid[nextPosition.y][nextPosition.x];
-  if (nextValue === "#") {
-  } else if (nextValue === ".") {
+
+  if (nextValue === Tile.Wall) {
+    return;
+  }
+  if (nextValue === Tile.Empty) {
+    return moveRobot(robot, direction, grid);
+  }
+
+  if (canPush(nextPosition, direction, grid)) {
+    push(nextPosition, direction, grid);
     moveRobot(robot, direction, grid);
-  } else if (nextValue === "O") {
-    if (canPush(nextPosition, direction, grid)) {
-      push(nextPosition, direction, grid);
-      moveRobot(robot, direction, grid);
-    }
   }
 }
 
