@@ -32,6 +32,13 @@ function print(grid) {
   console.log();
 }
 
+const Direction = {
+  Right: ">",
+  Left: "<",
+  Down: "v",
+  Up: "^",
+};
+
 function findRobot(grid) {
   for (const { x, y, value } of makeGridIterator(grid)) {
     if (value === "@") {
@@ -41,118 +48,172 @@ function findRobot(grid) {
   throw new Error("Robot not found!");
 }
 
+/**
+ * Returns true if the robot can push in the given direction
+ * @param position - of the box
+ * @param direction
+ * @param grid
+ * @returns {boolean}
+ */
+function canPush(position, direction, grid) {
+  if (direction === Direction.Right) {
+    for (let i = position.x + 1; i < grid[0].length; i++) {
+      if (grid[position.y][i] === "#") {
+        return false;
+      }
+      if (grid[position.y][i] === ".") {
+        return true;
+      }
+    }
+  }
+
+  if (direction === Direction.Left) {
+    for (let i = position.x - 1; i >= 0; i--) {
+      if (grid[position.y][i] === "#") {
+        return false;
+      }
+      if (grid[position.y][i] === ".") {
+        return true;
+      }
+    }
+  }
+
+  if (direction === Direction.Down) {
+    for (let i = position.y + 1; i < grid.length; i++) {
+      if (grid[i][position.x] === "#") {
+        return false;
+      }
+      if (grid[i][position.x] === ".") {
+        return true;
+      }
+    }
+  }
+
+  if (direction === Direction.Up) {
+    for (let i = position.y - 1; i >= 0; i--) {
+      if (grid[i][position.x] === "#") {
+        return false;
+      }
+      if (grid[i][position.x] === ".") {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  throw new Error(`Invalid direction ${direction}!`);
+}
+
+function push(position, direction, grid) {
+  if (direction === Direction.Right) {
+    let end;
+    for (let i = position.x + 1; i < grid[0].length; i++) {
+      if (grid[position.y][i] === ".") {
+        end = i;
+        break;
+      }
+    }
+
+    for (let i = end; i > position.x; i--) {
+      grid[position.y][i] = grid[position.y][i - 1];
+    }
+    grid[position.y][position.x] = ".";
+  }
+
+  if (direction === Direction.Left) {
+    let end;
+    for (let i = position.x - 1; i > 0; i--) {
+      if (grid[position.y][i] === ".") {
+        end = i;
+        break;
+      }
+    }
+
+    for (let i = end; i < position.x; i++) {
+      grid[position.y][i] = grid[position.y][i + 1];
+    }
+    grid[position.y][position.x] = ".";
+  }
+
+  if (direction === Direction.Down) {
+    let end;
+    for (let i = position.y + 1; i < grid.length; i++) {
+      if (grid[i][position.x] === ".") {
+        end = i;
+        break;
+      }
+    }
+
+    for (let i = end; i > position.y; i--) {
+      grid[i][position.x] = grid[i - 1][position.x];
+    }
+    grid[position.y][position.x] = ".";
+  }
+
+  if (direction === Direction.Up) {
+    let end;
+    for (let i = position.y - 1; i > 0; i--) {
+      if (grid[i][position.x] === ".") {
+        end = i;
+        break;
+      }
+    }
+
+    for (let i = end; i < position.y; i++) {
+      grid[i][position.x] = grid[i + 1][position.x];
+    }
+    grid[position.y][position.x] = ".";
+  }
+}
+
+function move(robot, direction, grid) {
+  // find next position
+  let nextPosition;
+  switch (direction) {
+    case ">":
+      nextPosition = { x: robot.x + 1, y: robot.y };
+      break;
+    case "<":
+      nextPosition = { x: robot.x - 1, y: robot.y };
+      break;
+    case "v":
+      nextPosition = { x: robot.x, y: robot.y + 1 };
+      break;
+    case "^":
+      nextPosition = { x: robot.x, y: robot.y - 1 };
+      break;
+    default:
+      throw new Error(`Unknown direction ${direction}!`);
+  }
+
+  const nextValue = grid[nextPosition.y][nextPosition.x];
+  if (nextValue === "#") {
+  } else if (nextValue === ".") {
+    grid[robot.y][robot.x] = ".";
+    robot.x = nextPosition.x;
+    robot.y = nextPosition.y;
+    grid[robot.y][robot.x] = "@";
+  } else if (nextValue === "O") {
+    if (canPush(nextPosition, direction, grid)) {
+      push(nextPosition, direction, grid);
+      grid[robot.y][robot.x] = ".";
+      robot.x = nextPosition.x;
+      robot.y = nextPosition.y;
+      grid[robot.y][robot.x] = "@";
+    }
+  }
+}
+
 function solvePart1() {
   const { grid, moves } = parseInput();
   const robot = findRobot(grid);
-  moves.forEach((move) => {
-    // find next position
-    let nextPosition;
-    switch (move) {
-      case ">":
-        nextPosition = { x: robot.x + 1, y: robot.y };
-        break;
-      case "<":
-        nextPosition = { x: robot.x - 1, y: robot.y };
-        break;
-      case "v":
-        nextPosition = { x: robot.x, y: robot.y + 1 };
-        break;
-      case "^":
-        nextPosition = { x: robot.x, y: robot.y - 1 };
-        break;
-      default:
-        throw new Error(`Unknown move ${move}!`);
-    }
-
-    const nextValue = grid[nextPosition.y][nextPosition.x];
-    outer: switch (nextValue) {
-      case "#":
-        break;
-      case ".":
-        grid[robot.y][robot.x] = ".";
-        robot.x = nextPosition.x;
-        robot.y = nextPosition.y;
-        grid[robot.y][robot.x] = "@";
-        break;
-      case "O": {
-        switch (move) {
-          case ">": {
-            for (let i = robot.x + 1; i < grid[0].length; i++) {
-              if (grid[robot.y][i] === "#") {
-                break outer;
-              }
-
-              if (grid[robot.y][i] === ".") {
-                grid[robot.y][i] = "O";
-                grid[robot.y][robot.x] = ".";
-                robot.x = nextPosition.x;
-                robot.y = nextPosition.y;
-                grid[robot.y][robot.x] = "@";
-                break outer;
-              }
-            }
-            break;
-          }
-          case "<": {
-            for (let i = robot.x - 1; i > 0; i--) {
-              if (grid[robot.y][i] === "#") {
-                break outer;
-              }
-
-              if (grid[robot.y][i] === ".") {
-                grid[robot.y][i] = "O";
-                grid[robot.y][robot.x] = ".";
-                robot.x = nextPosition.x;
-                robot.y = nextPosition.y;
-                grid[robot.y][robot.x] = "@";
-                break outer;
-              }
-            }
-            break;
-          }
-          case "v": {
-            for (let i = robot.y + 1; i < grid.length; i++) {
-              if (grid[i][robot.x] === "#") {
-                break outer;
-              }
-
-              if (grid[i][robot.x] === ".") {
-                grid[i][robot.x] = "O";
-                grid[robot.y][robot.x] = ".";
-                robot.x = nextPosition.x;
-                robot.y = nextPosition.y;
-                grid[robot.y][robot.x] = "@";
-                break outer;
-              }
-            }
-            break;
-          }
-          case "^": {
-            for (let i = robot.y - 1; i > 0; i--) {
-              if (grid[i][robot.x] === "#") {
-                break outer;
-              }
-
-              if (grid[i][robot.x] === ".") {
-                grid[i][robot.x] = "O";
-                grid[robot.y][robot.x] = ".";
-                robot.x = nextPosition.x;
-                robot.y = nextPosition.y;
-                grid[robot.y][robot.x] = "@";
-                break outer;
-              }
-            }
-            break;
-          }
-          default:
-            throw new Error(`Unknown move ${move}!`);
-        }
-        break;
-      }
-      default:
-        throw new Error(`Unknown value ${nextValue} in the grid!`);
-    }
+  moves.forEach((direction) => {
+    move(robot, direction, grid);
+    // console.log(`After direction: ${direction}`);
+    // print(grid);
   });
+
+  print(grid);
 
   let result = 0;
   for (const { x, y, value } of makeGridIterator(grid)) {
@@ -169,25 +230,25 @@ function solvePart2() {
   const { grid, moves } = parseInput();
 
   // increase grid size
-  const largeGrid = [];
-  for (let y = 0; y < grid.length; y++) {
-    const row = [];
-    for (let x = 0; x < grid[0].length; x++) {
-      const value = grid[y][x];
-      if (value === "#" || value === ".") {
-        row.push(value, value);
-      } else if (value === "@") {
-        row.push(value);
-      } else if (value === "O") {
-        row.push("[", "]");
-      } else {
-        throw new Error(`Invalid grid element ${value}!`);
-      }
-    }
-    largeGrid.push(row);
-  }
-
-  print(largeGrid)
+  // const largeGrid = [];
+  // for (let y = 0; y < grid.length; y++) {
+  //   const row = [];
+  //   for (let x = 0; x < grid[0].length; x++) {
+  //     const value = grid[y][x];
+  //     if (value === "#" || value === ".") {
+  //       row.push(value, value);
+  //     } else if (value === "@") {
+  //       row.push(value);
+  //     } else if (value === "O") {
+  //       row.push("[", "]");
+  //     } else {
+  //       throw new Error(`Invalid grid element ${value}!`);
+  //     }
+  //   }
+  //   largeGrid.push(row);
+  // }
+  //
+  // print(largeGrid);
   return;
 }
 
