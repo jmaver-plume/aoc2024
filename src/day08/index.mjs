@@ -1,4 +1,10 @@
 import fs from "node:fs";
+import {
+  createEmptyGrid,
+  isInsideGrid,
+  makeGridIterator,
+  parseGridInput,
+} from "../util.mjs";
 
 function readInput() {
   const input = process.env.INPUT ?? "sample.txt";
@@ -7,63 +13,11 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data.split("\n").map((line) => line.split(""));
-}
-
-// Generic grid methods
-// Returns a grid iterator for use in for...of
-function* makeGridIterator(grid) {
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[0].length; x++) {
-      yield { x, y, value: grid[y][x], grid };
-    }
-  }
-}
-
-// Deep clone a 2D grid
-function clone(grid) {
-  const clone = [];
-  for (let y = 0; y < grid.length; y++) {
-    let row = [];
-    for (let x = 0; x < grid[0].length; x++) {
-      row.push(grid[y][x]);
-    }
-    clone.push(row);
-  }
-  return clone;
-}
-
-function emptyGrid(grid, fill = ".") {
-  const empty = [];
-  for (let y = 0; y < grid.length; y++) {
-    let row = [];
-    for (let x = 0; x < grid[0].length; x++) {
-      row.push(".");
-    }
-    empty.push(row);
-  }
-  return empty;
-}
-
-// Returns true if position is inside the grid
-function isInside(position, grid) {
-  return (
-    position.x >= 0 &&
-    position.x <= grid[0].length - 1 &&
-    position.y >= 0 &&
-    position.y <= grid.length - 1
-  );
+  return parseGridInput(data);
 }
 
 function equalsPosition(a, b) {
   return a.x === b.x && a.y === b.y;
-}
-
-// Prints a 2D grid
-function print(grid) {
-  grid.forEach((row) => {
-    console.log(row.join(""));
-  });
 }
 
 function solvePart1() {
@@ -81,7 +35,7 @@ function solvePart1() {
     }
   }
 
-  const antinodes = emptyGrid(grid);
+  const antinodes = createEmptyGrid(grid);
   antennaToPositionsMap.forEach((positions, key) => {
     for (let i = 0; i < positions.length; i++) {
       for (let j = 1; j < positions.length; j++) {
@@ -99,7 +53,7 @@ function solvePart1() {
             (antinode) =>
               !equalsPosition(positions[i], antinode) &&
               !equalsPosition(positions[j], antinode) &&
-              isInside(antinode, grid),
+              isInsideGrid(antinode, grid),
           )
           .forEach((antinode) => {
             antinodes[antinode.y][antinode.x] = "#";
@@ -125,7 +79,7 @@ function solvePart2() {
     }
   }
 
-  const antinodes = emptyGrid(grid);
+  const antinodes = createEmptyGrid(grid);
   antennaToPositionsMap.forEach((positions, key) => {
     for (let i = 0; i < positions.length; i++) {
       for (let j = i + 1; j < positions.length; j++) {
@@ -158,7 +112,7 @@ function solvePart2() {
         }
 
         potentialAntinodes
-          .filter((antinode) => isInside(antinode, grid))
+          .filter((antinode) => isInsideGrid(antinode, grid))
           .forEach((antinode) => {
             antinodes[antinode.y][antinode.x] = "#";
           });
