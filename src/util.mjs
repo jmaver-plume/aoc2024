@@ -120,6 +120,15 @@ export function getGridNeighbours(
   return neighbours;
 }
 
+export function findUniqueInGrid(predicate, grid) {
+  for (const { x, y, value } of makeGridIterator(grid)) {
+    if (predicate(value)) {
+      return { x, y };
+    }
+  }
+  throw new Error("Value not found in grid.");
+}
+
 /**
  * Returns stringified representation of a position.
  *

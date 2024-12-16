@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { parseGridInput } from "../util.mjs";
+import { findUniqueInGrid, parseGridInput } from "../util.mjs";
 
 function readInput() {
   const input = process.env.INPUT ?? "sample.txt";
@@ -11,8 +11,17 @@ function parseInput() {
   return parseGridInput(data);
 }
 
+const Tile = {
+  Start: "S",
+  End: "E",
+  Wall: "#",
+  Empty: ".",
+};
+
 function solvePart1() {
-  const input = parseInput();
+  const grid = parseInput();
+  const start = findUniqueInGrid((value) => value === Tile.Start, grid);
+  const end = findUniqueInGrid((value) => value === Tile.End, grid);
   return;
 }
 
