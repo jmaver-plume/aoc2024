@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { parseGridInput } from "../util.mjs";
 
 function readInput() {
   const input = process.env.INPUT ?? "sample.txt";
@@ -7,7 +8,7 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  return parseGridInput(data);
 }
 
 function solvePart1() {
