@@ -129,6 +129,13 @@ export function findUniqueInGrid(predicate, grid) {
   throw new Error("Value not found in grid.");
 }
 
+export const Direction = {
+  Right: ">",
+  Left: "<",
+  Down: "v",
+  Up: "^",
+};
+
 /**
  * Returns stringified representation of a position.
  *
@@ -142,4 +149,19 @@ export function positionToString(position) {
 export function stringToPosition(string) {
   const [x, y] = string.split("::");
   return { x: parseInt(x), y: parseInt(y) };
+}
+
+export function getNextPosition(position, direction) {
+  switch (direction) {
+    case Direction.Right:
+      return { x: position.x + 1, y: position.y };
+    case Direction.Left:
+      return { x: position.x - 1, y: position.y };
+    case Direction.Down:
+      return { x: position.x, y: position.y + 1 };
+    case Direction.Up:
+      return { x: position.x, y: position.y - 1 };
+    default:
+      throw new Error(`Unknown direction ${direction}!`);
+  }
 }
