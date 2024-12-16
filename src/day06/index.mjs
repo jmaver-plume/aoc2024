@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { isOnGridEdge, makeGridIterator, shallowCloneGrid } from "../util.mjs";
 
 function readInput() {
   const input = process.env.INPUT ?? "sample.txt";
@@ -8,46 +9,6 @@ function readInput() {
 function parseInput() {
   const data = readInput();
   return data.split("\n").map((line) => line.split(""));
-}
-
-// Generic grid methods
-// Returns a grid iterator for use in for...of
-function* makeGridIterator(grid) {
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[0].length; x++) {
-      yield { x, y, value: grid[y][x], grid };
-    }
-  }
-}
-
-// Deep clone a 2D grid
-function clone(grid) {
-  const clone = [];
-  for (let y = 0; y < grid.length; y++) {
-    let row = [];
-    for (let x = 0; x < grid[0].length; x++) {
-      row.push(grid[y][x]);
-    }
-    clone.push(row);
-  }
-  return clone;
-}
-
-// Returns true if position is on the edge of the grid
-function isOnEdge(position, grid) {
-  return (
-    position.x === 0 ||
-    position.x === grid[0].length - 1 ||
-    position.y === 0 ||
-    position.y === grid.length - 1
-  );
-}
-
-// Prints a 2D grid
-function print(grid) {
-  grid.forEach((row) => {
-    console.log(row.join(""));
-  });
 }
 
 // Problem specific methods
@@ -114,7 +75,7 @@ function solvePart1() {
   do {
     move(guard, grid);
     grid[guard.y][guard.x] = "X";
-  } while (!isOnEdge(guard, grid));
+  } while (!isOnGridEdge(guard, grid));
   return grid.flat().reduce((sum, value) => (value === "X" ? sum + 1 : sum), 0);
 }
 
@@ -123,13 +84,13 @@ function solvePart2() {
 
   // First run without an additional obstacle to get a list of locations guard visited
   // This is a performance optimization to add obstacle to only visited locations
-  const firstClone = clone(grid);
+  const firstClone = shallowCloneGrid(grid);
   const guard = getStart(firstClone);
   firstClone[guard.y][guard.x] = "X";
   do {
     move(guard, firstClone);
     firstClone[guard.y][guard.x] = "X";
-  } while (!isOnEdge(guard, firstClone));
+  } while (!isOnGridEdge(guard, firstClone));
 
   let count = 0;
   const gridIterator = makeGridIterator(grid);
@@ -153,7 +114,7 @@ function solvePart2() {
         // Location with direction not yet visited
         visited.add(key);
         move(guard, grid);
-      } while (!isOnEdge(guard, grid));
+      } while (!isOnGridEdge(guard, grid));
 
       // Remove obstacle
       grid[y][x] = ".";
