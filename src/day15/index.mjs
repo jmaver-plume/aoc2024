@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { makeGridIterator, printGrid } from "../util.mjs";
 
 function readInput() {
   const input = process.env.INPUT ?? "sample.txt";
@@ -14,22 +15,6 @@ function parseInput() {
     .map((line) => line.split(""))
     .flat();
   return { grid, moves };
-}
-
-function* makeGridIterator(grid) {
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[0].length; x++) {
-      yield { x, y, value: grid[y][x], grid };
-    }
-  }
-}
-
-// Prints a 2D grid
-function print(grid) {
-  grid.forEach((row) => {
-    console.log(row.join(""));
-  });
-  console.log();
 }
 
 const Direction = {
@@ -55,124 +40,6 @@ function findRobotStartingPosition(grid) {
     }
   }
   throw new Error("Robot not found!");
-}
-
-/**
- * Returns true if the robot can push in the given direction
- * @param position - of the box
- * @param direction
- * @param grid
- * @returns {boolean}
- */
-function canPush(position, direction, grid) {
-  if (direction === Direction.Right) {
-    for (let i = position.x + 1; i < grid[0].length; i++) {
-      if (grid[position.y][i] === "#") {
-        return false;
-      }
-      if (grid[position.y][i] === ".") {
-        return true;
-      }
-    }
-  }
-
-  if (direction === Direction.Left) {
-    for (let i = position.x - 1; i >= 0; i--) {
-      if (grid[position.y][i] === "#") {
-        return false;
-      }
-      if (grid[position.y][i] === ".") {
-        return true;
-      }
-    }
-  }
-
-  if (direction === Direction.Down) {
-    for (let i = position.y + 1; i < grid.length; i++) {
-      if (grid[i][position.x] === "#") {
-        return false;
-      }
-      if (grid[i][position.x] === ".") {
-        return true;
-      }
-    }
-  }
-
-  if (direction === Direction.Up) {
-    for (let i = position.y - 1; i >= 0; i--) {
-      if (grid[i][position.x] === "#") {
-        return false;
-      }
-      if (grid[i][position.x] === ".") {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  throw new Error(`Invalid direction ${direction}!`);
-}
-
-function push(position, direction, grid) {
-  if (direction === Direction.Right) {
-    let end;
-    for (let i = position.x + 1; i < grid[0].length; i++) {
-      if (grid[position.y][i] === ".") {
-        end = i;
-        break;
-      }
-    }
-
-    for (let i = end; i > position.x; i--) {
-      grid[position.y][i] = grid[position.y][i - 1];
-    }
-    grid[position.y][position.x] = ".";
-  }
-
-  if (direction === Direction.Left) {
-    let end;
-    for (let i = position.x - 1; i > 0; i--) {
-      if (grid[position.y][i] === ".") {
-        end = i;
-        break;
-      }
-    }
-
-    for (let i = end; i < position.x; i++) {
-      grid[position.y][i] = grid[position.y][i + 1];
-    }
-    grid[position.y][position.x] = ".";
-  }
-
-  if (direction === Direction.Down) {
-    let end;
-    for (let i = position.y + 1; i < grid.length; i++) {
-      if (grid[i][position.x] === ".") {
-        end = i;
-        break;
-      }
-    }
-
-    for (let i = end; i > position.y; i--) {
-      grid[i][position.x] = grid[i - 1][position.x];
-    }
-    grid[position.y][position.x] = ".";
-  }
-
-  if (direction === Direction.Up) {
-    let end;
-    for (let i = position.y - 1; i > 0; i--) {
-      if (grid[i][position.x] === ".") {
-        end = i;
-        break;
-      }
-    }
-
-    for (let i = end; i < position.y; i++) {
-      grid[i][position.x] = grid[i + 1][position.x];
-    }
-    grid[position.y][position.x] = ".";
-  }
 }
 
 function getNextPosition(position, direction) {
@@ -291,7 +158,7 @@ function solve(grid, moves) {
     // Move robot
     moveRobot(robot, direction, grid);
   });
-  print(grid);
+  printGrid(grid);
   return getGPSCoordinateSum(grid);
 }
 

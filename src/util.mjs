@@ -69,3 +69,68 @@ export function isOnGridEdge(position, grid) {
     position.y === grid.length - 1
   );
 }
+
+/**
+ * Returns all neighbours (including diagonal) for a position in a grid
+ *
+ * @param {{ x: number, y: number }} position
+ * @param {number[][]} grid
+ * @param {Object} options
+ * @param {boolean} [options.includeDiagonal=false] include diagonal neighbours (e.g., x-1, y-1)
+ * @returns {{ x: number, y: number }[]}
+ */
+export function getGridNeighbours(
+  position,
+  grid,
+  { includeDiagonal } = {
+    includeDiagonal: false,
+  },
+) {
+  const maxX = grid[0].length - 1;
+  const maxY = grid.length - 1;
+  const neighbours = [];
+  if (position.x !== 0) {
+    neighbours.push({ x: position.x - 1, y: position.y });
+  }
+  if (position.x !== maxX) {
+    neighbours.push({ x: position.x + 1, y: position.y });
+  }
+  if (position.y !== 0) {
+    neighbours.push({ x: position.x, y: position.y - 1 });
+  }
+  if (position.y !== maxY) {
+    neighbours.push({ x: position.x, y: position.y + 1 });
+  }
+
+  if (includeDiagonal) {
+    if (position.x !== 0 && position.y !== 0) {
+      neighbours.push({ x: position.x - 1, y: position.y - 1 });
+    }
+    if (position.x !== maxX && position.y !== 0) {
+      neighbours.push({ x: position.x + 1, y: position.y - 1 });
+    }
+    if (position.x !== maxX && position.y !== maxY) {
+      neighbours.push({ x: position.x + 1, y: position.y + 1 });
+    }
+    if (position.x !== 0 && position.y !== maxY) {
+      neighbours.push({ x: position.x - 1, y: position.y + 1 });
+    }
+  }
+
+  return neighbours;
+}
+
+/**
+ * Returns stringified representation of a position.
+ *
+ * @param {{ x: number, y: number }} position
+ * @returns {string}
+ */
+export function positionToString(position) {
+  return `${position.x}::${position.y}`;
+}
+
+export function stringToPosition(string) {
+  const [x, y] = string.split("::");
+  return { x: parseInt(x), y: parseInt(y) };
+}
