@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { getGridNeighbours, makeGridIterator } from "../util.mjs";
 
 function readInput() {
   const input = process.env.INPUT ?? "sample.txt";
@@ -8,16 +9,6 @@ function readInput() {
 function parseInput() {
   const data = readInput();
   return data.split("\n").map((line) => line.split(""));
-}
-
-// Generic grid methods
-// Returns a grid iterator for use in for...of
-function* makeGridIterator(grid) {
-  for (let y = 0; y < grid.length; y++) {
-    for (let x = 0; x < grid[0].length; x++) {
-      yield { x, y, value: grid[y][x], grid };
-    }
-  }
 }
 
 /**
@@ -46,32 +37,6 @@ function getPositionValue(position, grid) {
   return grid[position.y][position.x];
 }
 
-/**
- * Returns all neighbours (including diagonal) for a position in a grid
- *
- * @param {{ x: number, y: number }} position
- * @param {string[][]} grid
- * @returns {{ x: number, y: number }[]}
- */
-function getNeighbours(position, grid) {
-  const maxX = grid[0].length - 1;
-  const maxY = grid.length - 1;
-  const neighbours = [];
-  if (position.x !== 0) {
-    neighbours.push({ x: position.x - 1, y: position.y });
-  }
-  if (position.x !== maxX) {
-    neighbours.push({ x: position.x + 1, y: position.y });
-  }
-  if (position.y !== 0) {
-    neighbours.push({ x: position.x, y: position.y - 1 });
-  }
-  if (position.y !== maxY) {
-    neighbours.push({ x: position.x, y: position.y + 1 });
-  }
-  return neighbours;
-}
-
 function solvePart1() {
   const grid = parseInput();
   const maxX = grid[0].length - 1;
@@ -95,7 +60,7 @@ function solvePart1() {
         continue;
       }
       visitedRegionPositions.add(firstKey);
-      const neighbours = getNeighbours(first, grid).filter(
+      const neighbours = getGridNeighbours(first, grid).filter(
         (position) => getPositionValue(position, grid) === value,
       );
       queue.push(...neighbours);
@@ -120,7 +85,7 @@ function solvePart1() {
         }
 
         // Add neighbour parameters
-        regionPerimeter += getNeighbours(position, grid).filter(
+        regionPerimeter += getGridNeighbours(position, grid).filter(
           (position) => getPositionValue(position, grid) !== value,
         ).length;
 
@@ -183,7 +148,7 @@ function solvePart2() {
       }
       visitedRegionPositions.add(firstKey);
       visitedPositions.add(firstKey);
-      const neighbours = getNeighbours(first, grid).filter(
+      const neighbours = getGridNeighbours(first, grid).filter(
         (position) => getPositionValue(position, grid) === value,
       );
       queue.push(...neighbours);
