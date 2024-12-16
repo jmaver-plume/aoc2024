@@ -165,3 +165,82 @@ export function getNextPosition(position, direction) {
       throw new Error(`Unknown direction ${direction}!`);
   }
 }
+
+class MinHeap {
+  constructor(mapper = (v) => v) {
+    this.items = [];
+    this.mapper = mapper;
+  }
+
+  pop() {
+    if (this.items.length === 0) {
+      return null;
+    }
+
+    if (this.items.length === 1) {
+      return this.items.pop();
+    }
+
+    // Swap last with first value
+    [this.items[0], this.items[this.items.length - 1]] = [
+      this.items[this.items.length - 1],
+      this.items[0],
+    ];
+
+    const result = this.items.pop();
+
+    // Fix the broken array
+    let index = 0;
+    let leftChildIndex = this.#leftChild(index);
+    let rightChildIndex = this.#rightChild(index);
+    let smallerIndex =
+      this.items[leftChildIndex] < this.items[rightChildIndex]
+        ? leftChildIndex
+        : rightChildIndex;
+    while (this.items[index] > this.items[smallerIndex]) {
+      [this.items[index], this.items[smallerIndex]] = [
+        this.items[smallerIndex],
+        this.items[index],
+      ];
+
+      index = 0;
+      leftChildIndex = this.#leftChild(index);
+      rightChildIndex = this.#rightChild(index);
+      smallerIndex =
+        this.items[leftChildIndex] < this.items[rightChildIndex]
+          ? leftChildIndex
+          : rightChildIndex;
+    }
+
+    return result;
+  }
+
+  push(value) {
+    this.items.push(value);
+
+    let index = this.items.length - 1;
+    let parentIndex = this.#parent(index);
+    while (this.items[index] < this.items[parentIndex]) {
+      // Swap values
+      [this.items[index], this.items[parentIndex]] = [
+        this.items[parentIndex],
+        this.items[index],
+      ];
+
+      index = parentIndex;
+      parentIndex = Math.ceil(index / 2) - 1;
+    }
+  }
+
+  #parent(i) {
+    return Math.floor((i - 1) / 2);
+  }
+
+  #leftChild(i) {
+    return 2 * i + 1;
+  }
+
+  #rightChild(i) {
+    return 2 * i + 2;
+  }
+}
