@@ -166,7 +166,7 @@ export function getNextPosition(position, direction) {
   }
 }
 
-class MinHeap {
+export class MinHeap {
   constructor(mapper = (v) => v) {
     this.items = [];
     this.mapper = mapper;
@@ -242,5 +242,142 @@ class MinHeap {
 
   #rightChild(i) {
     return 2 * i + 2;
+  }
+}
+
+class PriorityQueue {
+  constructor() {
+    this.heap = [];
+    this.positionMap = new Map(); // Tracks the index of each element in the heap
+  }
+
+  // Helper Methods
+  _swap(i, j) {
+    const temp = this.heap[i];
+    this.heap[i] = this.heap[j];
+    this.heap[j] = temp;
+
+    // Update positionMap
+    this.positionMap.set(this.heap[i].value, i);
+    this.positionMap.set(this.heap[j].value, j);
+  }
+
+  _parent(index) {
+    return Math.floor((index - 1) / 2);
+  }
+
+  _leftChild(index) {
+    return 2 * index + 1;
+  }
+
+  _rightChild(index) {
+    return 2 * index + 2;
+  }
+
+  _heapifyUp(index) {
+    while (
+      index > 0 &&
+      this.heap[this._parent(index)].priority > this.heap[index].priority
+    ) {
+      this._swap(index, this._parent(index));
+      index = this._parent(index);
+    }
+  }
+
+  _heapifyDown(index) {
+    const size = this.heap.length;
+    let smallest = index;
+
+    const left = this._leftChild(index);
+    const right = this._rightChild(index);
+
+    if (
+      left < size &&
+      this.heap[left].priority < this.heap[smallest].priority
+    ) {
+      smallest = left;
+    }
+
+    if (
+      right < size &&
+      this.heap[right].priority < this.heap[smallest].priority
+    ) {
+      smallest = right;
+    }
+
+    if (smallest !== index) {
+      this._swap(index, smallest);
+      this._heapifyDown(smallest);
+    }
+  }
+
+  // Add a new element with a priority
+  add(value, priority) {
+    if (this.positionMap.has(value)) {
+      throw new Error(`Element "${value}" already exists in the queue.`);
+    }
+
+    const newNode = { value, priority };
+    this.heap.push(newNode);
+    const index = this.heap.length - 1;
+
+    this.positionMap.set(value, index);
+    this._heapifyUp(index);
+  }
+
+  // Decrease the priority of an existing element
+  decreasePriority(value, newPriority) {
+    if (!this.positionMap.has(value)) {
+      throw new Error(`Element "${value}" not found in the queue.`);
+    }
+
+    const index = this.positionMap.get(value);
+    const currentPriority = this.heap[index].priority;
+
+    if (newPriority > currentPriority) {
+      throw new Error(`New priority must be less than the current priority.`);
+    }
+
+    this.heap[index].priority = newPriority;
+    this._heapifyUp(index);
+  }
+
+  // Extract the element with the highest priority (lowest value)
+  extractMin() {
+    if (this.heap.length === 0) {
+      throw new Error("Queue is empty.");
+    }
+
+    const root = this.heap[0];
+    const lastNode = this.heap.pop();
+
+    if (this.heap.length > 0) {
+      this.heap[0] = lastNode;
+      this.positionMap.set(lastNode.value, 0);
+      this._heapifyDown(0);
+    }
+
+    this.positionMap.delete(root.value);
+    return root.value;
+  }
+
+  // Peek at the element with the highest priority
+  peek() {
+    if (this.heap.length === 0) {
+      throw new Error("Queue is empty.");
+    }
+    return this.heap[0];
+  }
+
+  // Check if the queue is empty
+  isEmpty() {
+    return this.heap.length === 0;
+  }
+
+  // Debug: Print the heap
+  print() {
+    console.log(
+      this.heap.map((node) => `(${node.value}, ${node.priority})`).join(" "),
+    );
   }
 }
