@@ -7,7 +7,13 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  const [rawRegisters, rawProgram] = data.split("\n\n");
+  const registers = rawRegisters.split("\n").reduce((acc, line) => {
+    const match = line.match(/Register (\w+): (\d+)/);
+    acc[match[1]] = parseInt(match[2]);
+    return acc;
+  }, {});
+  return registers
 }
 
 function solvePart1() {
