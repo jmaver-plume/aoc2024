@@ -13,16 +13,17 @@ function parseInput() {
     acc[match[1]] = parseInt(match[2]);
     return acc;
   }, {});
-  return registers
+  const program = [...rawProgram.matchAll(/\d/g)].map((v) => parseInt(v[0]));
+  return { registers, program };
 }
 
 function solvePart1() {
-  const input = parseInput();
+  const { registers, program } = parseInput();
   return;
 }
 
 function solvePart2() {
-  const input = parseInput();
+  const { registers, program } = parseInput();
   return;
 }
 
