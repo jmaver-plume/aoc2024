@@ -88,6 +88,8 @@ function reconstructPaths(prev, start, targets) {
 }
 
 function solve(grid) {
+  // Solve using modified Dijkstra
+  // It's almost the same as generic Dijkstra except prev is map to list instead of map to string
   const pq = new PriorityQueue();
   const dist = {};
   const prev = {};
