@@ -6,9 +6,7 @@ import {
   makeGridIterator,
   parseGridInput,
   positionToString,
-  printGrid,
   PriorityQueue,
-  shallowCloneGrid,
 } from "../util.mjs";
 
 function readInput() {
@@ -58,69 +56,6 @@ function rotateRight(direction) {
   }
 }
 
-function solver(position, direction, cost, visited, cache, grid) {
-  // We returned to original path
-  if (visited.has(key)) {
-    return { cost: Infinity, visited: new Set(visited) };
-  }
-
-  const nextPosition = getNextPosition(position, direction);
-  if (grid[nextPosition.y][nextPosition.x] === Tile.End) {
-    const clonedVisited = new Set(visited);
-    clonedVisited.add(key);
-    return { cost: cost + 1, visited: clonedVisited };
-  }
-
-  const rotateLeftVisited = new Set(visited);
-  rotateLeftVisited.add(key);
-  possibilities.push(
-    solver(
-      position,
-      rotateLeft(direction),
-      cost + 1000,
-      rotateLeftVisited,
-      cache,
-      grid,
-    ),
-  );
-
-  const rotateRightVisited = new Set(visited);
-  rotateRightVisited.add(key);
-  possibilities.push(
-    solver(
-      position,
-      rotateRight(direction),
-      cost + 1000,
-      rotateRightVisited,
-      cache,
-      grid,
-    ),
-  );
-
-  possibilities.sort((a, b) => a.cost - b.cost);
-  cache.set(key, possibilities[0]);
-  return cache.get(key);
-}
-
-function print(visited, grid) {
-  const clonedGrid = shallowCloneGrid(grid);
-  [...visited]
-    .map((value) => {
-      const [x, y, direction] = value.split("::");
-      return {
-        position: {
-          x: parseInt(x),
-          y: parseInt(y),
-        },
-        direction,
-      };
-    })
-    .forEach(({ position, direction }) => {
-      clonedGrid[position.y][position.x] = direction;
-    });
-  printGrid(clonedGrid);
-}
-
 function toString(position, direction) {
   return `${position.x}::${position.y}::${direction}`;
 }
@@ -130,9 +65,29 @@ function fromString(string) {
   return { position: { x: parseInt(x), y: parseInt(y) }, direction };
 }
 
-function solvePart1() {
-  const grid = parseInput();
+function reconstructPaths(prev, start, targets) {
+  function dfs(node, paths, currentPath) {
+    if (node === start) {
+      paths.push([start, ...currentPath].reverse());
+      return;
+    }
 
+    for (const predecessor of prev[node]) {
+      currentPath.push(node);
+      dfs(predecessor, paths, currentPath);
+      currentPath.pop();
+    }
+  }
+
+  return targets.map((target) => {
+    const paths = [];
+    const currentPath = [];
+    dfs(target, paths, currentPath);
+    return paths;
+  });
+}
+
+function solve(grid) {
   const pq = new PriorityQueue();
   const dist = {};
   const prev = {};
@@ -190,30 +145,51 @@ function solvePart1() {
       const alt = dist[u] + neighbour.distance;
       const v = toString(neighbour.position, neighbour.direction);
       if (alt < dist[v]) {
-        prev[v] = u;
+        prev[v] = [u];
         dist[v] = alt;
         pq.decreasePriority(v, alt);
+      } else if (alt === dist[v]) {
+        prev[v].push(u);
       }
     });
   }
 
+  const start = findUniqueInGrid((value) => value === Tile.Start, grid);
   const end = findUniqueInGrid((value) => value === Tile.End, grid);
 
-  let result = Infinity;
-  Object.entries(dist).forEach(entry => {
-    const [key, value] = entry
-    const { position, direction } = fromString(key)
-    if (position.x === end.x && position.y === end.y && value < result ) {
-      result = value
+  let minCost = Infinity;
+  Object.entries(dist).forEach((entry) => {
+    const [key, value] = entry;
+    const { position, direction } = fromString(key);
+    if (position.x === end.x && position.y === end.y && value < minCost) {
+      minCost = value;
     }
-  })
+  });
 
-  return result;
+  const targets = [
+    toString(end, Direction.Right),
+    toString(end, Direction.Left),
+    toString(end, Direction.Up),
+    toString(end, Direction.Down),
+  ].filter((s) => dist[s] === minCost);
+
+  const locationsCount = new Set(
+    reconstructPaths(prev, toString(start, Direction.Right), targets)
+      .flat(2)
+      .map((v) => positionToString(fromString(v).position)),
+  ).size;
+
+  return { minCost, locationsCount };
+}
+
+function solvePart1() {
+  const grid = parseInput();
+  return solve(grid).minCost;
 }
 
 function solvePart2() {
-  const input = parseInput();
-  return;
+  const grid = parseInput();
+  return solve(grid).locationsCount;
 }
 
 // Run code
