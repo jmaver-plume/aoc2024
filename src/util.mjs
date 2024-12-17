@@ -245,7 +245,7 @@ export class MinHeap {
   }
 }
 
-class PriorityQueue {
+export class PriorityQueue {
   constructor() {
     this.heap = [];
     this.positionMap = new Map(); // Tracks the index of each element in the heap

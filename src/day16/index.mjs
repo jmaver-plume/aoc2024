@@ -3,8 +3,11 @@ import {
   Direction,
   findUniqueInGrid,
   getNextPosition,
+  makeGridIterator,
   parseGridInput,
+  positionToString,
   printGrid,
+  PriorityQueue,
   shallowCloneGrid,
 } from "../util.mjs";
 
@@ -56,11 +59,6 @@ function rotateRight(direction) {
 }
 
 function solver(position, direction, cost, visited, cache, grid) {
-  const key = `${position.x}::${position.y}::${direction}`;
-  if (cache.has(key)) {
-    return cache.get(key);
-  }
-
   // We returned to original path
   if (visited.has(key)) {
     return { cost: Infinity, visited: new Set(visited) };
@@ -71,15 +69,6 @@ function solver(position, direction, cost, visited, cache, grid) {
     const clonedVisited = new Set(visited);
     clonedVisited.add(key);
     return { cost: cost + 1, visited: clonedVisited };
-  }
-
-  const possibilities = [];
-  if (grid[nextPosition.y][nextPosition.x] === Tile.Empty) {
-    const clonedVisited = new Set(visited);
-    clonedVisited.add(key);
-    possibilities.push(
-      solver(nextPosition, direction, cost + 1, clonedVisited, cache, grid),
-    );
   }
 
   const rotateLeftVisited = new Set(visited);
@@ -132,12 +121,93 @@ function print(visited, grid) {
   printGrid(clonedGrid);
 }
 
+function toString(position, direction) {
+  return `${position.x}::${position.y}::${direction}`;
+}
+
+function fromString(string) {
+  const [x, y, direction] = string.split("::");
+  return { position: { x: parseInt(x), y: parseInt(y) }, direction };
+}
+
 function solvePart1() {
   const grid = parseInput();
-  const start = findUniqueInGrid((value) => value === Tile.Start, grid);
-  const cache = new Map();
-  const result = solver(start, Direction.Right, 0, new Set(), cache, grid);
-  print(result.visited, grid);
+
+  const pq = new PriorityQueue();
+  const dist = {};
+  const prev = {};
+
+  // Assign distance to every node
+  for (const { x, y, value } of makeGridIterator(grid)) {
+    if (value === Tile.Wall) {
+      continue;
+    }
+
+    if (value === Tile.Start) {
+      dist[toString({ x, y }, Direction.Right)] = 0;
+      pq.add(toString({ x, y }, Direction.Right), 0);
+    } else {
+      dist[toString({ x, y }, Direction.Right)] = Infinity;
+      pq.add(toString({ x, y }, Direction.Right), Infinity);
+    }
+
+    dist[toString({ x, y }, Direction.Left)] = Infinity;
+    pq.add(toString({ x, y }, Direction.Left), Infinity);
+
+    dist[toString({ x, y }, Direction.Up)] = Infinity;
+    pq.add(toString({ x, y }, Direction.Up), Infinity);
+
+    dist[toString({ x, y }, Direction.Down)] = Infinity;
+    pq.add(toString({ x, y }, Direction.Down), Infinity);
+  }
+
+  while (!pq.isEmpty()) {
+    const u = pq.extractMin();
+    const { position, direction } = fromString(u);
+    const neighbours = [];
+
+    // forward neighbour
+    const forwardPosition = getNextPosition(position, direction);
+    if (grid[forwardPosition.y][forwardPosition.x] !== Tile.Wall) {
+      neighbours.push({ position: forwardPosition, direction, distance: 1 });
+    }
+
+    // rotate left neighbour
+    neighbours.push({
+      position,
+      direction: rotateLeft(direction),
+      distance: 1000,
+    });
+
+    // rotate right neighbour
+    neighbours.push({
+      position,
+      direction: rotateRight(direction),
+      distance: 1000,
+    });
+
+    neighbours.forEach((neighbour) => {
+      const alt = dist[u] + neighbour.distance;
+      const v = toString(neighbour.position, neighbour.direction);
+      if (alt < dist[v]) {
+        prev[v] = u;
+        dist[v] = alt;
+        pq.decreasePriority(v, alt);
+      }
+    });
+  }
+
+  const end = findUniqueInGrid((value) => value === Tile.End, grid);
+
+  let result = Infinity;
+  Object.entries(dist).forEach(entry => {
+    const [key, value] = entry
+    const { position, direction } = fromString(key)
+    if (position.x === end.x && position.y === end.y && value < result ) {
+      result = value
+    }
+  })
+
   return result;
 }
 
