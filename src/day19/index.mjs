@@ -23,10 +23,46 @@ function solvePart1() {
   return getValidTowels(towels, colors).length;
 }
 
+function range(n) {
+  const r = [];
+  for (let i = 1; i <= n; i++) {
+    r.push(i);
+  }
+  return r;
+}
+
 function solvePart2() {
   const { colors, towels } = parseInput();
   const validTowels = getValidTowels(towels, colors);
-  return validTowels.length;
+  const colorsSet = new Set(colors);
+  const maxColorSize = Math.max(...colors.map((c) => c.length));
+
+  const cache = {};
+  validTowels.forEach((towel) => {
+    const partials = range(towel.length).map((i) => towel.substring(0, i));
+    const options = partials.map((partial) =>
+      range(Math.min(partial.length, maxColorSize)).map((i) => ({
+        left: partial.substring(0, partial.length - i),
+        right: partial.substring(partial.length - i),
+      })),
+    );
+    options.forEach((options) => {
+      cache[options[0].left + options[0].right] = options.reduce(
+        (count, { left, right }) => {
+          if (colorsSet.has(right) && left === "") {
+            return count + 1;
+          }
+          if (colorsSet.has(right) && cache[left]) {
+            return count + cache[left];
+          }
+          return count;
+        },
+        0,
+      );
+    });
+  });
+
+  return validTowels.reduce((sum, towel) => sum + cache[towel], 0);
 }
 
 // Run code
