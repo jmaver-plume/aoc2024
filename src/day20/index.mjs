@@ -83,61 +83,46 @@ function solvePart1() {
     locationToIndex[location] = index;
   });
 
-  const cheats = []
+  const cheats = [];
   path.forEach((location) => {
-    // 4 directions
-    // right
     const index = locationToIndex[location];
     const position = stringToPosition(location);
+    const candidates = [];
     if (position.x < grid[0].length - 2) {
-      const nextPosition = { x: position.x + 1, y: position.y };
-      const nextNextPosition = { x: position.x + 2, y: position.y };
-      const next = grid[nextPosition.y][nextPosition.x];
-      const nextNext = grid[nextNextPosition.y][nextNextPosition.x];
-      const cheatIndex = locationToIndex[positionToString(nextNextPosition)];
-      if (next === "#" && nextNext === "." && index < cheatIndex) {
-        cheats.push(cheatIndex - index - 2)
-      }
+      candidates.push({
+        nextPosition: { x: position.x + 1, y: position.y },
+        nextNextPosition: { x: position.x + 2, y: position.y },
+      });
     }
-
     if (position.x > 1) {
-      const nextPosition = { x: position.x - 1, y: position.y };
-      const nextNextPosition = { x: position.x - 2, y: position.y };
-      const next = grid[nextPosition.y][nextPosition.x];
-      const nextNext = grid[nextNextPosition.y][nextNextPosition.x];
-      const cheatIndex = locationToIndex[positionToString(nextNextPosition)];
-      if (next === "#" && nextNext === "." && index < cheatIndex) {
-        cheats.push(cheatIndex - index - 2)
-      }
+      candidates.push({
+        nextPosition: { x: position.x - 1, y: position.y },
+        nextNextPosition: { x: position.x - 2, y: position.y },
+      });
     }
-
     if (position.y < grid.length - 2) {
-      const nextPosition = { x: position.x, y: position.y + 1 };
-      const nextNextPosition = { x: position.x, y: position.y + 2 };
-      const next = grid[nextPosition.y][nextPosition.x];
-      const nextNext = grid[nextNextPosition.y][nextNextPosition.x];
-      const cheatIndex = locationToIndex[positionToString(nextNextPosition)];
-      if (next === "#" && nextNext === "." && index < cheatIndex) {
-        cheats.push(cheatIndex - index - 2)
-      }
+      candidates.push({
+        nextPosition: { x: position.x, y: position.y + 1 },
+        nextNextPosition: { x: position.x, y: position.y + 2 },
+      });
     }
-
     if (position.y > 1) {
-      const nextPosition = { x: position.x, y: position.y - 1 };
-      const nextNextPosition = { x: position.x, y: position.y - 2 };
+      candidates.push({
+        nextPosition: { x: position.x, y: position.y - 1 },
+        nextNextPosition: { x: position.x, y: position.y - 2 },
+      });
+    }
+    candidates.forEach((candidate) => {
+      const { nextPosition, nextNextPosition } = candidate;
       const next = grid[nextPosition.y][nextPosition.x];
       const nextNext = grid[nextNextPosition.y][nextNextPosition.x];
       const cheatIndex = locationToIndex[positionToString(nextNextPosition)];
       if (next === "#" && nextNext === "." && index < cheatIndex) {
-        cheats.push(cheatIndex - index - 2)
+        cheats.push(cheatIndex - index - 2);
       }
-    }
+    });
   });
-
-  // for each location in path search for +2 neighbours
-  // if +2 neighbour is also path location and said path location index is after path location index then it's an improvement else it's not
-
-  return cheats.filter(cheat => cheat >= 100).length;
+  return cheats.filter((cheat) => cheat >= 100).length;
 }
 
 function solvePart2() {
