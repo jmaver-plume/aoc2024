@@ -30,16 +30,7 @@ function parseInput() {
   }));
 }
 
-function solvePart1() {
-  const size = isSample() ? 7 : 71;
-  const duration = isSample() ? 12 : 1024;
-
-  const bytes = parseInput();
-  const grid = createEmptyGrid(size, size, ".");
-  bytes.slice(0, duration).forEach((byte) => {
-    grid[byte.y][byte.x] = "#";
-  });
-
+function getShortestPath(start, grid) {
   // Solve using Dijkstra
   const pq = new PriorityQueue();
   const dist = {};
@@ -74,6 +65,20 @@ function solvePart1() {
     });
   }
 
+  return { dist, prev };
+}
+
+function solvePart1() {
+  const size = isSample() ? 7 : 71;
+  const duration = isSample() ? 12 : 1024;
+
+  const bytes = parseInput();
+  const grid = createEmptyGrid(size, size, ".");
+  bytes.slice(0, duration).forEach((byte) => {
+    grid[byte.y][byte.x] = "#";
+  });
+
+  const { dist, prev } = getShortestPath({ x: 0, y: 0 }, grid);
   const end = positionToString({ x: size - 1, y: size - 1 });
   return dist[end];
 }
@@ -84,6 +89,7 @@ function solvePart2() {
 
   const bytes = parseInput();
   const grid = createEmptyGrid(size, size, ".");
+
   for (let i = 0; i < bytes.length; i++) {
     const byte = bytes[i];
     grid[byte.y][byte.x] = "#";
@@ -91,40 +97,7 @@ function solvePart2() {
       continue;
     }
 
-    // Solve using Dijkstra
-    const pq = new PriorityQueue();
-    const dist = {};
-    const prev = {};
-
-    // Assign distance to every node
-    for (const { x, y, value } of makeGridIterator(grid)) {
-      if (value === "#") {
-        continue;
-      }
-      const key = positionToString({ x, y });
-      const distance = x === 0 && y === 0 ? 0 : Infinity;
-      dist[key] = distance;
-      pq.add(key, distance);
-    }
-
-    while (!pq.isEmpty()) {
-      const u = pq.extractMin();
-      const position = stringToPosition(u);
-      const neighbours = getGridNeighbours(position, grid)
-        .filter((neighbour) => {
-          return grid[neighbour.y][neighbour.x] !== "#";
-        })
-        .map((neighbour) => positionToString(neighbour));
-      neighbours.forEach((neighbour) => {
-        const alt = dist[u] + 1;
-        if (alt < dist[neighbour]) {
-          prev[neighbour] = u;
-          dist[neighbour] = alt;
-          pq.decreasePriority(neighbour, alt);
-        }
-      });
-    }
-
+    const { dist, prev } = getShortestPath({ x: 0, y: 0 }, grid);
     const end = positionToString({ x: size - 1, y: size - 1 });
     if (dist[end] === Infinity) {
       return `${bytes[i].x},${bytes[i].y}`;
