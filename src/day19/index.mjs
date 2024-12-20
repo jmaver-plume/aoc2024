@@ -13,15 +13,20 @@ function parseInput() {
   return { colors, towels };
 }
 
+function getValidTowels(towels, colors) {
+  const regex = new RegExp(`^(${colors.join("|")})+$`);
+  return towels.filter((towel) => towel.match(regex));
+}
+
 function solvePart1() {
   const { colors, towels } = parseInput();
-  const regex = new RegExp(`^(${colors.join("|")})+$`);
-  return towels.filter((towel) => towel.match(regex)).length;
+  return getValidTowels(towels, colors).length;
 }
 
 function solvePart2() {
-  const input = parseInput();
-  return;
+  const { colors, towels } = parseInput();
+  const validTowels = getValidTowels(towels, colors);
+  return validTowels.length;
 }
 
 // Run code

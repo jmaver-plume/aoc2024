@@ -22,14 +22,37 @@ function parseInput() {
 class Program {
   #instructionPointer;
   #registers;
+  #originalRegisters;
   #instructions;
   #output;
+  #path;
 
   constructor(registers, instructions) {
+    this.#originalRegisters = registers;
     this.#instructionPointer = 0;
     this.#registers = registers;
     this.#instructions = instructions;
     this.#output = [];
+    this.#path = [];
+  }
+
+  setRegisters(registers) {
+    this.#registers = registers;
+  }
+
+  reset() {
+    this.#registers = this.#originalRegisters;
+    this.#instructionPointer = 0;
+    this.#output = [];
+    this.#path = [];
+  }
+
+  getPath() {
+    return this.#path;
+  }
+
+  getInstructions() {
+    return this.#instructions;
   }
 
   getOutput() {
@@ -39,6 +62,7 @@ class Program {
   run() {
     while (this.#instructionPointer < this.#instructions.length) {
       const opcode = this.#getOpcode();
+      this.#path.push(opcode);
       switch (opcode) {
         case 0:
           this.#adv();
@@ -156,8 +180,26 @@ class Program {
 
 function solvePart1() {
   const program = parseInput();
-  program.run();
-  return program.getOutput();
+  const instructions = program.getInstructions();
+
+
+  for (let i = 0; i <= 10000000; i++) {
+    program.reset();
+    program.setRegisters({ A: i, B: 0, C: 0 });
+    program.run();
+    const output = program.getOutput();
+    if (
+      output.at(0) === instructions.at(0) &&
+      output.at(1) === instructions.at(1) &&
+      output.at(2) === instructions.at(2) &&
+      output.at(3) === instructions.at(3) &&
+      output.at(4) === instructions.at(4) &&
+      output.at(5) === instructions.at(5) &&
+      output.at(6) === instructions.at(6)
+    ) {
+      console.log(i, i.toString(8), output);
+    }
+  }
 }
 
 function solvePart2() {
@@ -170,3 +212,5 @@ const part1Result = solvePart1();
 console.log(`Part 1: ${part1Result}`);
 const part2Result = solvePart2();
 console.log(`Part 2: ${part2Result}`);
+
+// 2, 1, 7, 1, 0, 4
