@@ -5,6 +5,7 @@ import {
   makeGridIterator,
   positionToString,
   PriorityQueue,
+  shallowCloneGrid,
   stringToPosition,
 } from "../util.mjs";
 
@@ -84,25 +85,35 @@ function solvePart1() {
 }
 
 function solvePart2() {
+  const bytes = parseInput();
+
   const size = isSample() ? 7 : 71;
   const minDuration = isSample() ? 12 : 1024;
-
-  const bytes = parseInput();
+  const interval = isSample()
+    ? [13, bytes.length - 1]
+    : [1025, bytes.length - 1];
   const grid = createEmptyGrid(size, size, ".");
 
-  for (let i = 0; i < bytes.length; i++) {
-    const byte = bytes[i];
-    grid[byte.y][byte.x] = "#";
-    if (i <= minDuration) {
-      continue;
+  // [1, 4] -> 2 -> [1] and [3, 4]
+  // [1, 3] -> 2 -> [1] and [3]
+  while (interval[0] !== interval[1] && interval[0] + 1 !== interval[1]) {
+    const middle = Math.floor((interval[0] + interval[1]) / 2);
+    const clone = shallowCloneGrid(grid);
+    for (let i = 0; i <= middle; i++) {
+      const byte = bytes[i];
+      clone[byte.y][byte.x] = "#";
     }
-
-    const { dist, prev } = getShortestPath({ x: 0, y: 0 }, grid);
+    const { dist, prev } = getShortestPath({ x: 0, y: 0 }, clone);
     const end = positionToString({ x: size - 1, y: size - 1 });
     if (dist[end] === Infinity) {
-      return `${bytes[i].x},${bytes[i].y}`;
+      interval[1] = middle;
+    } else {
+      interval[0] = middle;
     }
   }
+
+  const byte = bytes[interval[1]];
+  return `${byte.x},${byte.y}`;
 }
 
 // Run code
