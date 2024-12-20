@@ -4,14 +4,22 @@ import {
   getGridNeighbours,
   makeGridIterator,
   positionToString,
-  printGrid,
   PriorityQueue,
   stringToPosition,
 } from "../util.mjs";
 
+function getInputFile() {
+  return process.env.INPUT ?? "sample.txt";
+}
+
+function isSample() {
+  const inputFile = getInputFile();
+  return inputFile === "sample.txt";
+}
+
 function readInput() {
-  const input = process.env.INPUT ?? "sample.txt";
-  return fs.readFileSync(new URL(input, import.meta.url), "utf-8");
+  const inputFile = getInputFile();
+  return fs.readFileSync(new URL(inputFile, import.meta.url), "utf-8");
 }
 
 function parseInput() {
@@ -23,9 +31,12 @@ function parseInput() {
 }
 
 function solvePart1() {
+  const size = isSample() ? 7 : 71;
+  const duration = isSample() ? 12 : 1024;
+
   const bytes = parseInput();
-  const grid = createEmptyGrid(7, 7, ".");
-  bytes.slice(0, 12).forEach((byte) => {
+  const grid = createEmptyGrid(size, size, ".");
+  bytes.slice(0, duration).forEach((byte) => {
     grid[byte.y][byte.x] = "#";
   });
 
@@ -63,7 +74,7 @@ function solvePart1() {
     });
   }
 
-  const end = positionToString({ x: 6, y: 6 });
+  const end = positionToString({ x: size - 1, y: size - 1 });
   return dist[end];
 }
 
