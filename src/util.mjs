@@ -10,11 +10,11 @@ export function* makeGridIterator(grid) {
   }
 }
 
-export function createEmptyGrid(grid, fill = ".") {
+export function createEmptyGrid(rowLength, columnLength, fill = ".") {
   const empty = [];
-  for (let y = 0; y < grid.length; y++) {
+  for (let y = 0; y < rowLength; y++) {
     let row = [];
-    for (let x = 0; x < grid[0].length; x++) {
+    for (let x = 0; x < columnLength; x++) {
       row.push(".");
     }
     empty.push(row);

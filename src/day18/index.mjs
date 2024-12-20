@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import {createEmptyGrid, printGrid} from "../util.mjs";
 
 function readInput() {
   const input = process.env.INPUT ?? "sample.txt";
@@ -7,11 +8,19 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  return data.split("\n").map((line) => ({
+    x: parseInt(line.split(",")[0]),
+    y: parseInt(line.split(",")[1]),
+  }));
 }
 
 function solvePart1() {
-  const input = parseInput();
+  const bytes = parseInput();
+  const grid = createEmptyGrid(7, 7, ".");
+  bytes.slice(0, 12).forEach(byte => {
+    grid[byte.y][byte.x] = '#'
+  })
+  printGrid(grid)
   return;
 }
 

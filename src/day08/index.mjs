@@ -35,7 +35,7 @@ function solvePart1() {
     }
   }
 
-  const antinodes = createEmptyGrid(grid);
+  const antinodes = createEmptyGrid(grid.length, grid[0].length);
   antennaToPositionsMap.forEach((positions, key) => {
     for (let i = 0; i < positions.length; i++) {
       for (let j = 1; j < positions.length; j++) {
@@ -79,7 +79,7 @@ function solvePart2() {
     }
   }
 
-  const antinodes = createEmptyGrid(grid);
+  const antinodes = createEmptyGrid(grid.length, grid[0].length);
   antennaToPositionsMap.forEach((positions, key) => {
     for (let i = 0; i < positions.length; i++) {
       for (let j = i + 1; j < positions.length; j++) {
