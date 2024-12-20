@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import {
+  equalsPosition,
   findUniqueInGrid,
   getGridNeighbours,
   makeGridIterator,
@@ -20,63 +21,21 @@ function parseInput() {
   return parseGridInput(data);
 }
 
-function getShortestPath(start, grid) {
-  // Solve using Dijkstra
-  const pq = new PriorityQueue();
-  const dist = {};
-  const prev = {};
-
-  // Assign distance to every node
-  for (const { x, y, value } of makeGridIterator(grid)) {
-    if (value === "#") {
-      continue;
-    }
-    const key = positionToString({ x, y });
-    const distance = x === start.x && y === start.y ? 0 : Infinity;
-    dist[key] = distance;
-    pq.add(key, distance);
-  }
-
-  while (!pq.isEmpty()) {
-    const u = pq.extractMin();
-    const position = stringToPosition(u);
-    const neighbours = getGridNeighbours(position, grid)
-      .filter((neighbour) => {
-        return grid[neighbour.y][neighbour.x] !== "#";
-      })
-      .map((neighbour) => positionToString(neighbour));
-    neighbours.forEach((neighbour) => {
-      const alt = dist[u] + 1;
-      if (alt < dist[neighbour]) {
-        prev[neighbour] = u;
-        dist[neighbour] = alt;
-        pq.decreasePriority(neighbour, alt);
-      }
-    });
-  }
-
-  return { dist, prev };
-}
-
-function reconstructPaths(prev, start, end) {
-  const path = [];
-  while (end !== start) {
-    path.push(end);
-    end = prev[end];
-  }
-  return path;
-}
-
 function solvePart1() {
   const grid = parseInput();
   const start = findUniqueInGrid((value) => value === "S", grid);
   const end = findUniqueInGrid((value) => value === "E", grid);
-  const { dist, prev } = getShortestPath(start, grid);
-  const path = reconstructPaths(
-    prev,
-    positionToString(start),
-    positionToString(end),
-  );
+  const path = [positionToString(start)];
+  const visited = new Set(path);
+  let current = start;
+  while (!equalsPosition(current, end)) {
+    const next = getGridNeighbours(current, grid).find(
+      (p) => grid[p.y][p.x] !== "#" && !visited.has(positionToString(p)),
+    );
+    path.push(positionToString(next));
+    current = next;
+    visited.add(positionToString(next));
+  }
 
   const locationToIndex = {};
   path.forEach((location, index) => {
@@ -90,24 +49,28 @@ function solvePart1() {
     const candidates = [];
     if (position.x < grid[0].length - 2) {
       candidates.push({
+        position,
         nextPosition: { x: position.x + 1, y: position.y },
         nextNextPosition: { x: position.x + 2, y: position.y },
       });
     }
     if (position.x > 1) {
       candidates.push({
+        position,
         nextPosition: { x: position.x - 1, y: position.y },
         nextNextPosition: { x: position.x - 2, y: position.y },
       });
     }
     if (position.y < grid.length - 2) {
       candidates.push({
+        position,
         nextPosition: { x: position.x, y: position.y + 1 },
         nextNextPosition: { x: position.x, y: position.y + 2 },
       });
     }
     if (position.y > 1) {
       candidates.push({
+        position,
         nextPosition: { x: position.x, y: position.y - 1 },
         nextNextPosition: { x: position.x, y: position.y - 2 },
       });

@@ -151,6 +151,10 @@ export function stringToPosition(string) {
   return { x: parseInt(x), y: parseInt(y) };
 }
 
+export function equalsPosition(a, b) {
+  return a.x === b.x && a.y === b.y;
+}
+
 export function getNextPosition(position, direction) {
   switch (direction) {
     case Direction.Right:
