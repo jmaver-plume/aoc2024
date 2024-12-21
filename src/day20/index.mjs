@@ -4,12 +4,8 @@ import {
   findUniqueInGrid,
   getGridNeighbours,
   isInsideGrid,
-  makeGridIterator,
   parseGridInput,
   positionToString,
-  printGrid,
-  PriorityQueue,
-  stringToPosition,
 } from "../util.mjs";
 
 function readInput() {
