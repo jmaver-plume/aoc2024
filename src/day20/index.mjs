@@ -25,8 +25,8 @@ function parseInput() {
 function findPath(grid) {
   const start = findUniqueInGrid((value) => value === "S", grid);
   const end = findUniqueInGrid((value) => value === "E", grid);
-  const path = [positionToString(start)];
-  const visited = new Set(path);
+  const path = [start];
+  const visited = new Set([positionToString(start)]);
   let current = start;
   while (!equalsPosition(current, end)) {
     const next = getGridNeighbours(current, grid).find(
@@ -101,15 +101,18 @@ function solvePart2() {
   const cheats = [];
   path.forEach((position) => {
     const index = locationToIndex[positionToString(position)];
-    const neighbours = getNeighbours(position, 2, grid);
+    const neighbours = getNeighbours(position, 20, grid);
     neighbours.forEach((neighbour) => {
       const neighbourIndex = locationToIndex[positionToString(neighbour)];
       if (index < neighbourIndex) {
-        cheats.push(neighbourIndex - index - 2);
+        const key = `${position.x}:${position.y}::${neighbour.x}:${neighbour.y}`;
+        const distance = getManhattanDistance(position, neighbour);
+        cheats.push(neighbourIndex - index - distance);
       }
     });
   });
-  return cheats.filter((cheat) => cheat >= 100).length;
+
+  return Object.entries(cheats).filter((entry) => entry[1] >= 100).length;
 }
 
 // Run code
