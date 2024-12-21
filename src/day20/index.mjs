@@ -3,6 +3,7 @@ import {
   equalsPosition,
   findUniqueInGrid,
   getGridNeighbours,
+  isInsideGrid,
   makeGridIterator,
   parseGridInput,
   positionToString,
@@ -38,6 +39,33 @@ function findPath(grid) {
   return path;
 }
 
+/**
+ * @param {{ x: number; y: number }} a
+ * @param {{ x: number; y: number }} b
+ * @returns {number}
+ */
+function getManhattanDistance(a, b) {
+  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+}
+
+function getNeighbours(position, maxDistance, grid) {
+  const neighbours = [];
+  for (let y = position.y - maxDistance; y <= position.y + maxDistance; y++) {
+    for (let x = position.x - maxDistance; x <= position.x + maxDistance; x++) {
+      const candidate = { x, y };
+      const manhattanDistance = getManhattanDistance(candidate, position);
+      if (
+        isInsideGrid(candidate, grid) &&
+        manhattanDistance <= maxDistance &&
+        grid[candidate.y][candidate.x] !== "#"
+      ) {
+        neighbours.push(candidate);
+      }
+    }
+  }
+  return neighbours;
+}
+
 function solvePart1() {
   const grid = parseInput();
   const path = findPath(grid);
@@ -50,42 +78,11 @@ function solvePart1() {
   const cheats = [];
   path.forEach((position) => {
     const index = locationToIndex[positionToString(position)];
-    const candidates = [];
-    if (position.x < grid[0].length - 2) {
-      candidates.push({
-        position,
-        nextPosition: { x: position.x + 1, y: position.y },
-        nextNextPosition: { x: position.x + 2, y: position.y },
-      });
-    }
-    if (position.x > 1) {
-      candidates.push({
-        position,
-        nextPosition: { x: position.x - 1, y: position.y },
-        nextNextPosition: { x: position.x - 2, y: position.y },
-      });
-    }
-    if (position.y < grid.length - 2) {
-      candidates.push({
-        position,
-        nextPosition: { x: position.x, y: position.y + 1 },
-        nextNextPosition: { x: position.x, y: position.y + 2 },
-      });
-    }
-    if (position.y > 1) {
-      candidates.push({
-        position,
-        nextPosition: { x: position.x, y: position.y - 1 },
-        nextNextPosition: { x: position.x, y: position.y - 2 },
-      });
-    }
-    candidates.forEach((candidate) => {
-      const { nextPosition, nextNextPosition } = candidate;
-      const next = grid[nextPosition.y][nextPosition.x];
-      const nextNext = grid[nextNextPosition.y][nextNextPosition.x];
-      const cheatIndex = locationToIndex[positionToString(nextNextPosition)];
-      if (next === "#" && nextNext === "." && index < cheatIndex) {
-        cheats.push(cheatIndex - index - 2);
+    const neighbours = getNeighbours(position, 2, grid);
+    neighbours.forEach((neighbour) => {
+      const neighbourIndex = locationToIndex[positionToString(neighbour)];
+      if (index < neighbourIndex) {
+        cheats.push(neighbourIndex - index - 2);
       }
     });
   });
@@ -104,42 +101,11 @@ function solvePart2() {
   const cheats = [];
   path.forEach((position) => {
     const index = locationToIndex[positionToString(position)];
-    const candidates = [];
-    if (position.x < grid[0].length - 2) {
-      candidates.push({
-        position,
-        nextPosition: { x: position.x + 1, y: position.y },
-        nextNextPosition: { x: position.x + 2, y: position.y },
-      });
-    }
-    if (position.x > 1) {
-      candidates.push({
-        position,
-        nextPosition: { x: position.x - 1, y: position.y },
-        nextNextPosition: { x: position.x - 2, y: position.y },
-      });
-    }
-    if (position.y < grid.length - 2) {
-      candidates.push({
-        position,
-        nextPosition: { x: position.x, y: position.y + 1 },
-        nextNextPosition: { x: position.x, y: position.y + 2 },
-      });
-    }
-    if (position.y > 1) {
-      candidates.push({
-        position,
-        nextPosition: { x: position.x, y: position.y - 1 },
-        nextNextPosition: { x: position.x, y: position.y - 2 },
-      });
-    }
-    candidates.forEach((candidate) => {
-      const { nextPosition, nextNextPosition } = candidate;
-      const next = grid[nextPosition.y][nextPosition.x];
-      const nextNext = grid[nextNextPosition.y][nextNextPosition.x];
-      const cheatIndex = locationToIndex[positionToString(nextNextPosition)];
-      if (next === "#" && nextNext === "." && index < cheatIndex) {
-        cheats.push(cheatIndex - index - 2);
+    const neighbours = getNeighbours(position, 2, grid);
+    neighbours.forEach((neighbour) => {
+      const neighbourIndex = locationToIndex[positionToString(neighbour)];
+      if (index < neighbourIndex) {
+        cheats.push(neighbourIndex - index - 2);
       }
     });
   });
