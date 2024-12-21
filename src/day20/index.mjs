@@ -66,10 +66,8 @@ function getNeighbours(position, maxDistance, grid) {
   return neighbours;
 }
 
-function solvePart1() {
-  const grid = parseInput();
+function solve(grid, maxDistance) {
   const path = findPath(grid);
-
   const locationToIndex = {};
   path.forEach((position, index) => {
     locationToIndex[positionToString(position)] = index;
@@ -78,41 +76,26 @@ function solvePart1() {
   const cheats = [];
   path.forEach((position) => {
     const index = locationToIndex[positionToString(position)];
-    const neighbours = getNeighbours(position, 2, grid);
+    const neighbours = getNeighbours(position, maxDistance, grid);
     neighbours.forEach((neighbour) => {
       const neighbourIndex = locationToIndex[positionToString(neighbour)];
       if (index < neighbourIndex) {
-        cheats.push(neighbourIndex - index - 2);
+        const distance = getManhattanDistance(position, neighbour);
+        cheats.push(neighbourIndex - index - distance);
       }
     });
   });
   return cheats.filter((cheat) => cheat >= 100).length;
 }
 
+function solvePart1() {
+  const grid = parseInput();
+  return solve(grid, 2);
+}
+
 function solvePart2() {
   const grid = parseInput();
-  const path = findPath(grid);
-
-  const locationToIndex = {};
-  path.forEach((position, index) => {
-    locationToIndex[positionToString(position)] = index;
-  });
-
-  const cheats = [];
-  path.forEach((position) => {
-    const index = locationToIndex[positionToString(position)];
-    const neighbours = getNeighbours(position, 20, grid);
-    neighbours.forEach((neighbour) => {
-      const neighbourIndex = locationToIndex[positionToString(neighbour)];
-      if (index < neighbourIndex) {
-        const key = `${position.x}:${position.y}::${neighbour.x}:${neighbour.y}`;
-        const distance = getManhattanDistance(position, neighbour);
-        cheats.push(neighbourIndex - index - distance);
-      }
-    });
-  });
-
-  return Object.entries(cheats).filter((entry) => entry[1] >= 100).length;
+  return solve(grid, 20);
 }
 
 // Run code
