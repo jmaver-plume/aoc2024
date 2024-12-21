@@ -7,16 +7,16 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  return data.split('\n');
 }
 
 function solvePart1() {
-  const input = parseInput();
+  const codes = parseInput();
   return;
 }
 
 function solvePart2() {
-  const input = parseInput();
+  const codes = parseInput();
   return;
 }
 
