@@ -7,17 +7,84 @@ function readInput() {
 
 function parseInput() {
   const data = readInput();
-  return data;
+  return data.split("\n").map(BigInt);
 }
 
 function solvePart1() {
-  const input = parseInput();
-  return;
+  const secrets = parseInput();
+  for (let i = 0; i < 2000; i++) {
+    secrets.forEach((secret, i) => {
+      const one = ((secret * BigInt(64)) ^ secret) % BigInt(16777216);
+      const two = ((one / BigInt(32)) ^ one) % BigInt(16777216);
+      const three = ((two * BigInt(2048)) ^ two) % BigInt(16777216);
+      secrets[i] = three;
+    });
+  }
+  return secrets.reduce((sum, value) => sum + value, BigInt(0));
 }
 
 function solvePart2() {
-  const input = parseInput();
-  return;
+  const secrets = parseInput();
+  const history = {};
+  secrets.forEach((secret) => {
+    history[secret] = [
+      { value: secret, ones: secret % BigInt(10), change: null },
+    ];
+  });
+  secrets.forEach((secret, i) => {
+    let current = secret;
+    for (let i = 0; i < 1999; i++) {
+      const one = ((current * BigInt(64)) ^ current) % BigInt(16777216);
+      const two = ((one / BigInt(32)) ^ one) % BigInt(16777216);
+      const three = ((two * BigInt(2048)) ^ two) % BigInt(16777216);
+      current = three;
+      const currentOnes = current % BigInt(10);
+      history[secret].push({
+        value: current,
+        ones: currentOnes,
+        change: currentOnes - history[secret].at(-1).ones,
+      });
+    }
+    secrets[i] = current;
+  });
+
+  const monkeyTest = {}
+
+  const sequences = {};
+  Object.entries(history).forEach((entry) => {
+    const [secret, history] = entry;
+    const found = new Set()
+    for (let i = 4; i < history.length; i++) {
+      const a = history[i - 3].change;
+      const b = history[i - 2].change;
+      const c = history[i - 1].change;
+      const d = history[i].change;
+      if (a === b || b === c || c === d) {
+        continue;
+      }
+      const sequence = [a, b, c, d].join(",");
+      if (found.has(sequence)) {
+        continue
+      } else {
+        found.add(sequence)
+      }
+      const value = history[i].ones;
+      sequences[sequence] = sequences[sequence]
+        ? sequences[sequence] + value
+        : value;
+    }
+  });
+
+  let bestSequence = null;
+  let bestValue = null;
+  Object.entries(sequences).forEach((entry) => {
+    const [sequence, value] = entry;
+    if (bestValue === null || value > bestValue) {
+      bestValue = value;
+      bestSequence = sequence;
+    }
+  });
+  return bestValue;
 }
 
 // Run code
