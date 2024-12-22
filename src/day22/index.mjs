@@ -48,25 +48,24 @@ function solvePart2() {
     secrets[i] = current;
   });
 
-  const monkeyTest = {}
-
   const sequences = {};
-  Object.entries(history).forEach((entry) => {
-    const [secret, history] = entry;
-    const found = new Set()
+  Object.values(history).forEach((history) => {
+    const usedSequences = new Set();
     for (let i = 4; i < history.length; i++) {
       const a = history[i - 3].change;
       const b = history[i - 2].change;
       const c = history[i - 1].change;
       const d = history[i].change;
       if (a === b || b === c || c === d) {
+        // require 4 consecutive changes
         continue;
       }
       const sequence = [a, b, c, d].join(",");
-      if (found.has(sequence)) {
-        continue
+      if (usedSequences.has(sequence)) {
+        // monkey will stop at first sequence
+        continue;
       } else {
-        found.add(sequence)
+        usedSequences.add(sequence);
       }
       const value = history[i].ones;
       sequences[sequence] = sequences[sequence]
