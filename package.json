@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "sample": "INPUT=sample.txt node src/day22/index.mjs",
-    "solution": "INPUT=solution.txt node src/day22/index.mjs"
+    "sample": "INPUT=sample.txt node src/day23/index.mjs",
+    "solution": "INPUT=solution.txt node src/day23/index.mjs"
   },
   "keywords": [],
   "author": "",
@@ -12,7 +12,9 @@
   "description": "",
   "type": "module",
   "dependencies": {
+    "clipboardy": "^4.0.0",
     "lodash": "^4.17.21",
-    "prettier": "^3.4.1"
+    "prettier": "^3.4.1",
+    "ts-graphviz": "^2.1.5"
   }
 }
