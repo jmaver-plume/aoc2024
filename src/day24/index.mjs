@@ -31,20 +31,7 @@ function parseInput() {
   return { values, connections };
 }
 
-function solvePart1() {
-  const input = parseInput();
-  const unset = new Set();
-  input.connections.forEach((connection) => {
-    if (!(connection.left in input.values)) {
-      unset.add(connection.left);
-    }
-    if (!(connection.left in input.values)) {
-      unset.add(connection.right);
-    }
-  });
-
-  const values = input.values;
-  let connections = input.connections;
+function getResult(values, connections) {
   while (connections.length) {
     const remainingConnections = [];
     connections.forEach((connection) => {
@@ -66,12 +53,20 @@ function solvePart1() {
     connections = remainingConnections;
   }
 
-  return parseInt(Object.entries(values)
-    .filter((entry) => entry[0].startsWith("z"))
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .reverse()
-    .map((entry) => entry[1])
-    .join(""), 2);
+  return parseInt(
+    Object.entries(values)
+      .filter((entry) => entry[0].startsWith("z"))
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .reverse()
+      .map((entry) => entry[1])
+      .join(""),
+    2,
+  );
+}
+
+function solvePart1() {
+  const input = parseInput();
+  return getResult(input.values, input.connections)
 }
 
 function solvePart2() {
